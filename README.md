@@ -2,6 +2,9 @@
 
 ### local_scripts - The Fiji UI scripts 
 
+__at the moment it is assumed the Aulehla group share is mounted under
+*/Volumes/aulehla* !__
+
 - to be executed at a local machine
 - entry point into the pipeline: copies the data/scripts onto /scratch
 - creates a slurm script in /g/aulehla/vLab/WaveletMovieBatch
