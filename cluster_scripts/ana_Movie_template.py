@@ -16,47 +16,39 @@ from scipy.signal import hilbert,cwt,ricker,lombscargle,welch,morlet,bartlett
 from skimage import io 
 
 #----------Import Wavelet Routines----------------
-scriptpath = expanduser('~/HPC_dir/WaveletMovies/')
+scriptpath = expanduser('~/WaveletMovies/cluster_scripts')
 sys.path.append( scriptpath) # the sys.path!
 from wavelet_ana_lib import *
 #-------------------------------------------------
-
-base_dir = '/g/aulehla/vLab/WaveletMovieBatch/'
 
 #---- to be overwritten by the prepare script----
 dt = 10
 Tmin = 100
 Tmax = 220
 nT = 100
-movie_dir = None
 #------------------------------------------------
 
-wdir = os.path.join(base_dir,movie_dir) # the working directory
+wdir = os.getcwd()
 print("Working in",wdir)
 
 if len(sys.argv) < 2:
     print("No command line argument.. exiting")
     sys.exit(1)
 
-# from slurm array_task_id, what RoiMovie to operate on
-file_num = int(sys.argv[1]) - 1
 p = Path(wdir)
-rm_names = list( p.glob('Roi_Movie*') )
-if len(rm_names) == 0:
-    print('Found no roi movies.. exiting!')
+movie_names = list( p.glob('input_*tif') )
+if len(movie_names) == 0:
+    print('Found no input movie.. exiting!')
     sys.exit(1)
 
-print("Found {} roi movies!".format(len(rm_names), wdir))
+print("Found {} input movies:".format(len(movie_names), wdir))
+print(movie_names)
 
-try:
-    rm_name = rm_names[file_num].name # the roi movie file name
-except IndexError:
-    print("Movie number {} not found, exting..".format(file_num))
-    sys.exit(1)
+movie_name = movie_names[0].name # the roi movie file name
 
-rm_path = os.path.join( wdir, rm_name )
-print('Opening movie number {}:'.format(file_num), rm_name)
-rm = io.imread(rm_path, plugin="tifffile")
+movie_path = os.path.join( wdir, movie_name )
+print('Opening :', movie_name)
+rm = io.imread(movie_path, plugin="tifffile")
 
 #---------------------------------------------------------
 periods = np.linspace(Tmin,Tmax,nT)

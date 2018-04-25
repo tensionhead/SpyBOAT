@@ -20,114 +20,24 @@ from java.util import Arrays
 import pickle
 
 #-------------------------------------------------------------
-scriptpath = expanduser('~/HPC_dir/WaveletMovies/') 
+script_path = expanduser('/Volumes/aulehla/Gregor/progs/WaveletMovies/cluster_scripts') 
 # cluster directory
-cluster_dir = '/Volumes/aulehla/vLab/WaveletMovieBatch/'
+cluster_dir = '/Volumes/aulehla/vLab/WaveletMovieBatch'
 #-------------------------------------------------------------
 
-def make_tile_rois(movie,xwidth,ywidth):
 
-    '''
-    Construct the roi-grid used for every frame of the movie here once.
-    '''
-    
-    width,height,NChannels,NSlices,NFrames = movie.getDimensions()
-    
-    # print height, width, NChannels, NSlices,NFrames
-
-    ov = Overlay()
-
-    xoff,yoff = 0,0
-    # get roi corner coordinates
-    xcoords,ycoords = [],[]
-    while True:
-        
-        xcoords.append(xoff)
-        xoff += xwidth
-        
-        if xoff > width:
-            xcoords.append(width)
-            break
-
-    while True:
-                
-        ycoords.append(yoff)
-        yoff += ywidth
-        
-        if yoff > height:
-            ycoords.append(height)
-            break
-
-    # construct rectangular rois
-    Rois = []
-    for i,x in enumerate(xcoords[:-1]):
-        if i > len(xcoords):
-            break
-        for j,y in enumerate(ycoords[:-1]):
-            if j > len(ycoords):
-                break
-            
-            width = xcoords[i+1] - x
-            height = ycoords[j+1] - y
-            new_roi = Roi(x,y,width,height)
-            Rois.append(new_roi)
-            ov.add(new_roi)
-
-    movie.setOverlay(ov)
-
-    return Rois,ov
-    
-def crop_tile_movie(movie, Roi):
-        
-    NFrames = movie.getNFrames()
-    NSlices = movie.getNSlices()
-    BitDepth = movie.getBitDepth()
-    Channel = movie.getChannel() # use current channel!
-
-    # get Roi specifications
-    awt_rect = Roi.getBounds()
-    # print(dir(awt_rect))
-    roi_width = awt_rect.width
-    roi_height = awt_rect.height
-    roi_x = awt_rect.x
-    roi_y = awt_rect.y
-    
-    if NSlices > 1:
-        IJ.log("Too many slices.. use z-projection beforehand!")
-        return False
-
-    name = '_'.join(['Roi','Movie',str(roi_x),str(roi_y),str(roi_width), str(roi_height)])
-
-    # same number of frames, dimensions of roi
-    roi_movie= IJ.createHyperStack( name ,roi_width,roi_height,1,1,NFrames,BitDepth)
-    
-    for frame in range(1, NFrames + 1):
-        movie.setPosition(Channel,1,frame)
-        roi_movie.setPosition(1,1,frame)
-        ip = movie.getProcessor()
-        ip.setRoi(Roi)
-
-        crop_ip = ip.crop()
-        roi_movie.setProcessor(crop_ip)
-
-    return roi_movie
-
-def create_slurm_script(MovieDir,Nrm):
+def create_slurm_script(MovieDir):
 
     # global scriptpath for template location
 
-    tdir = os.path.join(scriptpath,'slurm_template.sh')
+    tdir = os.path.join(script_path,'slurm_py_template.sh')
     out_lines = []
     with open(tdir,'r') as template:
         for line in template:
 
             #insert correct directory name
             if 'dummyDir' in line:
-                line = ''.join( ['MovieDir="',MovieDir,'"\n'] )
-                print(line)
-
-            if 'SBATCH --array' in line:
-                line = ''.join( ['#SBATCH --array=1-',str(Nrm),'\n'] )
+                line = ''.join( ['MovieSourceDir="',MovieDir,'"\n'] )
                 print(line)
 
             #print(line)
@@ -146,7 +56,7 @@ def create_slurm_script(MovieDir,Nrm):
 def create_wavelet_script(MovieDir,dt,Tmin,Tmax,nT):
 
     # global scriptpath for template location
-    tdir = os.path.join(scriptpath,'wavelet_ext_template.py')
+    tdir = os.path.join(script_path,'ana_Movie_template.py')
     out_lines = []
     with open(tdir,'r') as template:
         for line in template:
@@ -175,8 +85,12 @@ def create_wavelet_script(MovieDir,dt,Tmin,Tmax,nT):
             #print(line)
             out_lines.append(line)
 
+
+    #------Script to execute on the HPC cluster--
+    sname = 'ana_Movie.py'
+    #--------------------------------------------
+    
     # directory to save the slurm script
-    sname = 'wavelet_ana.py'
     sdir = os.path.join(cluster_dir,MovieDir,sname)
             
     with open(sdir,'w') as OUT:
@@ -202,13 +116,36 @@ def run():
     # IJ.getFilePath # for interactive use
     orig = IJ.getImage() # single LuVeLu channel or select the right one, only one slice MaxProject!
 
-    # the unique identifier used to create the working directory
+    width,height,NChannels,NSlices,NFrames = orig.getDimensions()
+
+    if NChannels > 1:
+        IJ.log("Error: only one channel allowed, split the channels first..exiting!")
+        gd = GenericDialog("Too much channels!")
+        gd.addMessage("Only one channel allowed, split the channels first..exiting!")
+        gd.hideCancelButton()
+        gd.showDialog()
+        return
+
+    if NSlices > 1:
+        IJ.log("Error: only one slice allowed, use maximum projection first..exiting!")
+        gd = GenericDialog("Too much slices!")
+        gd.addMessage("Only one slice allowed, use maximum projection first..exiting!")
+        gd.hideCancelButton()
+        gd.showDialog()
+        return
+
+    # the unique(?!) identifier used to create the working directory
     title = orig.getShortTitle()
     print(title)
 
     if not os.path.exists(cluster_dir):
         IJ.log("Cluster directory\n" + cluster_dir + "\nnot found..have you mounted the group share?")
         return
+
+    if not os.path.exists(script_path):
+        IJ.log("Script directory\n" + script_path + "\nnot found..have you mounted the group share?")
+        return
+
     # maybe add possibility to manually point to the cluster directory?
 
     # create the working directory from the movie title
@@ -219,17 +156,20 @@ def run():
     else:
         IJ.log('\nWorking in existing directory\n' + wdir)
         gd3 = GenericDialog("Directory exists")
-        gd3.addMessage("Directory already exists.. clear all and start over?")
+        gd3.addMessage("Directory already exists.. overwrite existing files?")
         gd3.showDialog()
         if gd3.wasCanceled():  
-            print ("Dialog3 canceled!" )
-            IJ.log("Dialog3 canceled!" )
+            print ("Canceled!" )
+            IJ.log("Canceled!" )
             return
         else:
-            clear_directory(wdir)
-            IJ.log("Cleared " + wdir + " !")
+            IJ.log("Continuing in existing directory..")
+        # without roi_movies we can easily overwrite existing files
+        # else:
+        #     clear_directory(wdir)
+        #     IJ.log("Cleared " + wdir + " !")
 
-
+        
     gd = GenericDialog("Wavelet options - T_c = T_max!")
     gd.addNumericField("dt (min):",10,1)
     gd.addNumericField("Tmin (min):",100,0)
@@ -241,62 +181,28 @@ def run():
         IJ.log("Wavelet Dialog canceled!" )
         return
 
+
     dt = gd.getNextNumber()
     Tmin = gd.getNextNumber()
     Tmax = gd.getNextNumber()
     nT = gd.getNextNumber()
 
-    # create_wavelet_script(title,dt,Tmin,Tmax,nT)
-            
-    gd = GenericDialog("Tiling options")
-    gd.addNumericField("roi width:",50,0)
-    gd.addNumericField("roi height:",50,0)
+    # create wavelet script
+    create_wavelet_script(title,dt,Tmin,Tmax,nT)
+        
+    # create the slurm script
+    create_slurm_script(title)
+
+    gd = GenericDialog("Almost done")
+    gd.addMessage("All good, copy movie for processing onto vLab?")
     gd.showDialog()
     if gd.wasCanceled():  
-        print ("Dialog canceled!" )
-        IJ.log("Dialog canceled!" )
+        IJ.log("Warning: did not copy movie..")
         return
-
-    roi_width = gd.getNextNumber()
-    roi_height = gd.getNextNumber()
-            
-    Rois,ov = make_tile_rois(orig,roi_width,roi_height)
-    orig.setOverlay(ov)
-    IJ.log( '\nCreated ' + str(len(Rois)) + ' rectangular Rois')
-
-    
-    gd2= GenericDialog("Continue?")
-    gd2.addMessage("Continue with creating " + str(len(Rois)) + " sub-movies?")
-    gd2.showDialog()
-    if gd2.wasCanceled():  
-        print ("Dialog2 canceled!" )
-        IJ.log("Dialog2 canceled!" )
-        return  
         
-
-    #print Rois[0].toString()
-    IJ.log('\nCreating ' + str(len(Rois)) + ' roi movies...')
-    for Roi in Rois:
-        orig.hide()
-        print Roi.toString()
-        rm = crop_tile_movie(orig,Roi)
-        if not rm:
-            return
-        rm_title = rm.getShortTitle() # Roi_Movie_x_y_width_height - for restitching!
-        # IJ.log( 'Created ' + rm_title)
-        file_path = os.path.join(wdir,rm_title)
-        # rm.show()
-        IJ.save(rm, file_path)
-
-    IJ.log( '\nCreated ' + str(len(Rois)) + ' roi movies')
-
-    # write the original movie dimensions to a .txt for later restitching
-    txt_path = os.path.join(wdir,'dimensions.txt')
-    IJ.saveString(str(orig.getDimensions()),txt_path) # no better string represenation so far :/
-    # create the slurm script
-    create_slurm_script(title,len(Rois))
-
-    orig.show()
+    file_path = os.path.join(wdir,'input_' + title)
+    # rm.show()
+    IJ.save(orig, file_path)
         
 
 run()
