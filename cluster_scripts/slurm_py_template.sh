@@ -13,16 +13,24 @@
 #SBATCH -t 08:00:00
 
 BaseDir='/g/aulehla/vLab/WaveletMovieBatch'
-MovieSourceDir='dummyDir'
+MovieDir='dummyDir' # get replaced by prepare script
 SCRIPT='ana_Movie.py'
-
-FileNum=$SLURM_ARRAY_TASK_ID
-# FileNum=3
 
 ##### load modules
 module load Anaconda3
 
-##### Launch parallel job using srun
-echo 'starting'
-python3 $BaseDir/$MovieDir/$SCRIPT $FileNum 
-echo 'Done'
+##### copy files to /scratch working directory
+cp -R $BaseDir/$MovieDir /scratch/gregor
+
+
+#### launch python
+cd /scratch/gregor/$MovieDir
+python3 $SCRIPT 
+echo 'Python is Done'
+
+#### copy the results back
+cp /scratch/gregor/$MovieDir/phase*tif $BaseDir/$MovieDir/
+cp /scratch/gregor/$MovieDir/period*tif $BaseDir/$MovieDir/
+cp /scratch/gregor/$MovieDir/power*tif $BaseDir/$MovieDir/
+echo 'Everything is done'
+touch $BaseDir/$MovieDir/done

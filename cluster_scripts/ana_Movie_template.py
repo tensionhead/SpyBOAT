@@ -31,9 +31,10 @@ nT = 100
 wdir = os.getcwd()
 print("Working in",wdir)
 
-if len(sys.argv) < 2:
-    print("No command line argument.. exiting")
-    sys.exit(1)
+# None needed atm
+# if len(sys.argv) < 2:
+#     print("No command line argument.. exiting")
+#     sys.exit(1)
 
 p = Path(wdir)
 movie_names = list( p.glob('input_*tif') )
@@ -89,22 +90,20 @@ for x in range(xdim):
         phase_movie[:,y,x] = phases
         period_movie[:,y,x] = ridge_periods
         power_movie[:,y,x] = powers
-
-
-
         
 print('done with the transformations')
 # save phase movie
-out_path1 = os.path.join(wdir, 'phase' + rm_name)
+out_name = movie_name.split('input_')[1] # clip off the prefix
+out_path1 = os.path.join(wdir, 'phase_' + out_name)
 io.imsave(out_path1, phase_movie)
 print('written',out_path1)
 
 # save period movie
-out_path2 = os.path.join(wdir, 'period' + rm_name)
+out_path2 = os.path.join(wdir, 'period_' + out_name)
 io.imsave(out_path2, period_movie)
 print('written',out_path2)
 
 # save power movie
-out_path3 = os.path.join(wdir, 'power' + rm_name)
+out_path3 = os.path.join(wdir, 'power_' + out_name)
 io.imsave(out_path3, phase_movie)
 print('written',out_path3)

@@ -37,7 +37,7 @@ def create_slurm_script(MovieDir):
 
             #insert correct directory name
             if 'dummyDir' in line:
-                line = ''.join( ['MovieSourceDir="',MovieDir,'"\n'] )
+                line = ''.join( ['MovieDir="',MovieDir,'"\n'] )
                 print(line)
 
             #print(line)
