@@ -1,7 +1,7 @@
 #!/bin/bash
 ##### These lines are for Slurm
-#SBATCH --output=/home/moenke/output/wletM_%A_%a.out
-#SBATCH --error=/home/moenke/output/wletM_%A_%a.err
+#SBATCH --output=/home/moenke/output/wletM_%A.out
+#SBATCH --error=/home/moenke/output/wletM_%A.err
 #SBATCH -n 1 
 #SBATCH -N 1
 #SBATCH -A aulehla

@@ -42,7 +42,7 @@ if len(movie_names) == 0:
     print('Found no input movie.. exiting!')
     sys.exit(1)
 
-print("Found {} input movies:".format(len(movie_names), wdir))
+print("Found {} input movie(s):".format(len(movie_names), wdir))
 print(movie_names)
 
 movie_name = movie_names[0].name # the roi movie file name
