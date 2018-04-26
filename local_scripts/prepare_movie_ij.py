@@ -5,7 +5,7 @@ from os.path import expanduser
 from math import sqrt,cos,sin,pi
 
 from ij import IJ,ImagePlus,ImageStack
-from java.awt import Color
+from ij.io import OpenDialog
 from ij.gui import PolygonRoi,Roi,EllipseRoi,ShapeRoi,Overlay,Line 
 from ij.gui import GenericDialog,Overlay,Roi,DialogListener,Plot,ProfilePlot 
 from ij.plugin.filter import RankFilters,EDM,GaussianBlur,ParticleAnalyzer,BackgroundSubtracter
@@ -21,9 +21,17 @@ import pickle
 
 #-------------------------------------------------------------
 script_path = expanduser('/Volumes/aulehla/Gregor/progs/WaveletMovies/cluster_scripts') 
-# cluster directory
-cluster_dir = '/Volumes/aulehla/vLab/WaveletMovieBatch'
+# cluster directory - set by user!
+cluster_base_dir = '/Volumes/aulehla/vLab/WaveletMovieBatch'
+cluster_base_dir = expanduser('~/PSM')
 #-------------------------------------------------------------
+
+
+def display_msg(title,message):
+    gd = GenericDialog(title)
+    gd.addMessage(message)
+    gd.hideCancelButton()
+    gd.showDialog()
 
 
 def create_slurm_script(MovieDir):
@@ -115,39 +123,52 @@ def run():
 
     # IJ.getFilePath # for interactive use
     orig = IJ.getImage() # single LuVeLu channel or select the right one, only one slice MaxProject!
+    # the unique(?!) identifier used to create the working directory
+    title = orig.getShortTitle()
+    print(title)
 
     width,height,NChannels,NSlices,NFrames = orig.getDimensions()
 
     if NChannels > 1:
         IJ.log("Error: only one channel allowed, split the channels first..exiting!")
-        gd = GenericDialog("Too much channels!")
-        gd.addMessage("Only one channel allowed, split the channels first..exiting!")
-        gd.hideCancelButton()
-        gd.showDialog()
+        display_msg("Too much channels!","Only one channel allowed, split the channels first..exiting!")
         return
 
     if NSlices > 1:
+        display_msg("Too much slices!","Only one slice allowed, use maximum projection first..exiting!")
         IJ.log("Error: only one slice allowed, use maximum projection first..exiting!")
-        gd = GenericDialog("Too much slices!")
-        gd.addMessage("Only one slice allowed, use maximum projection first..exiting!")
-        gd.hideCancelButton()
-        gd.showDialog()
         return
-
-    # the unique(?!) identifier used to create the working directory
-    title = orig.getShortTitle()
-    print(title)
-
-    if not os.path.exists(cluster_dir):
-        IJ.log("Cluster directory\n" + cluster_dir + "\nnot found..have you mounted the group share?")
+            
+    if not os.path.exists(cluster_base_dir):
+        display_msg("No group share?!",cluster_base_dir + "\nnot found..have you mounted the group share?")
+        IJ.log("Directory\n" + cluster_base_dir + "\nnot found..have you mounted the group share?")
         return
 
     if not os.path.exists(script_path):
+        display_msg("No group share?!",script_path + "\nnot found..have you mounted the group share?")
         IJ.log("Script directory\n" + script_path + "\nnot found..have you mounted the group share?")
         return
 
-    # maybe add possibility to manually point to the cluster directory?
-
+    message = ''' 
+    Type in a subdirectory of /vLab/WaveletMovieBatch 
+    For example 'Christine' will set /vLab/WaveletMovieBatch/Cristine 
+    as the working directory! 
+    Leave blank if you want to work directly in /vLab/WaveletMovieBatch.
+    '''
+    gd = GenericDialog("Specify working directory")    
+    gd.addMessage(message)
+    gd.addStringField('Subdirectory:',None)
+    gd.showDialog()
+    sub_dir_str = gd.getNextString()
+    
+    cluster_dir = os.path.join(cluster_base_dir,sub_dir_str)
+    if not os.path.exists(cluster_dir):
+        os.mkdir(base_dir)
+        IJ.log("Created directory " + cluster_dir)
+    else: 
+        IJ.log("Working in " + cluster_dir)
+    return
+    
     # create the working directory from the movie title
     wdir = os.path.join(cluster_dir,title) # the working directory
     if not os.path.exists(wdir):
@@ -174,7 +195,7 @@ def run():
     gd.addNumericField("dt (min):",10,1)
     gd.addNumericField("Tmin (min):",100,0)
     gd.addNumericField("Tmax (min):",220,0)
-    gd.addNumericField("Period steps:",100,0)
+    gd.addNumericField("Period steps:",150,0)
     gd.showDialog()
     if gd.wasCanceled():  
         print ("Wavelet Dialog canceled!" )

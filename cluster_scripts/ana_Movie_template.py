@@ -105,5 +105,5 @@ print('written',out_path2)
 
 # save power movie
 out_path3 = os.path.join(wdir, 'power_' + out_name)
-io.imsave(out_path3, phase_movie)
+io.imsave(out_path3, power_movie)
 print('written',out_path3)

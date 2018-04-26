@@ -27,6 +27,7 @@ cp -R $BaseDir/$MovieDir /scratch/gregor
 cd /scratch/gregor/$MovieDir
 python3 $SCRIPT 
 echo 'Python is Done'
+touch cluster_done # mark it on /scratch
 
 #### copy the results back
 cp /scratch/gregor/$MovieDir/phase*tif $BaseDir/$MovieDir/
