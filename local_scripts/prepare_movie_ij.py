@@ -223,7 +223,7 @@ def run():
         
     file_path = os.path.join(wdir,'input_' + title)
     IJ.log("Copied movie to " + file_path)
-    # rm.show()
+
     IJ.save(orig, file_path)
         
 
