@@ -34,7 +34,7 @@ def display_msg(title,message):
     gd.showDialog()
 
 
-def create_slurm_script(MovieDir):
+def create_slurm_script(MovieDir, cluster_dir):
 
     # global scriptpath for template location
 
@@ -61,7 +61,7 @@ def create_slurm_script(MovieDir):
 
     IJ.log('\nwrote slurm script to:\n'+sdir)
 
-def create_wavelet_script(MovieDir,dt,Tmin,Tmax,nT):
+def create_wavelet_script(MovieDir,cluster_dir,dt,Tmin,Tmax,nT):
 
     # global scriptpath for template location
     tdir = os.path.join(script_path,'ana_Movie_template.py')
@@ -209,10 +209,10 @@ def run():
     nT = gd.getNextNumber()
 
     # create wavelet script
-    create_wavelet_script(title,dt,Tmin,Tmax,nT)
+    create_wavelet_script(title, cluster_dir, dt, Tmin, Tmax, nT)
         
     # create the slurm script
-    create_slurm_script(title)
+    create_slurm_script(title, cluster_dir)
 
     gd = GenericDialog("Almost done")
     gd.addMessage("All good, copy movie for processing onto vLab?")
@@ -222,6 +222,7 @@ def run():
         return
         
     file_path = os.path.join(wdir,'input_' + title)
+    IJ.log("Copied movie to " + file_path)
     # rm.show()
     IJ.save(orig, file_path)
         
