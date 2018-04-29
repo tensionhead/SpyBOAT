@@ -17,6 +17,7 @@ from skimage import io
 
 #----------Import Wavelet Routines----------------
 scriptpath = expanduser('~/WaveletMovies/cluster_scripts')
+scriptpath = expanduser('/g/aulehla/vLab/WaveletMovieBatch/src/')
 sys.path.append( scriptpath) # the sys.path!
 from wavelet_ana_lib import *
 #-------------------------------------------------

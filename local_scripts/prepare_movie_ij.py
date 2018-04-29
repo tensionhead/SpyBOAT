@@ -5,7 +5,7 @@ from os.path import expanduser
 from math import sqrt,cos,sin,pi
 
 from ij import IJ,ImagePlus,ImageStack
-from ij.io import OpenDialog
+from ij.io import OpenDialog, DirectoryChooser
 from ij.gui import PolygonRoi,Roi,EllipseRoi,ShapeRoi,Overlay,Line 
 from ij.gui import GenericDialog,Overlay,Roi,DialogListener,Plot,ProfilePlot 
 from ij.plugin.filter import RankFilters,EDM,GaussianBlur,ParticleAnalyzer,BackgroundSubtracter
@@ -21,9 +21,9 @@ import pickle
 
 #-------------------------------------------------------------
 script_path = expanduser('/Volumes/aulehla/Gregor/progs/WaveletMovies/cluster_scripts') 
-# cluster directory - set by user!
-cluster_base_dir = '/Volumes/aulehla/vLab/WaveletMovieBatch'
-cluster_base_dir = expanduser('~/PSM')
+# group share directory - set by user!
+base_dir = '/Volumes/aulehla/vLab/WaveletMovieBatch'
+# cluster_base_dir = expanduser('~/PSM')
 #-------------------------------------------------------------
 
 
@@ -34,7 +34,7 @@ def display_msg(title,message):
     gd.showDialog()
 
 
-def create_slurm_script(MovieDir, cluster_dir):
+def create_slurm_script(MovieDir, base_dir):
 
     # global scriptpath for template location
 
@@ -43,7 +43,16 @@ def create_slurm_script(MovieDir, cluster_dir):
     with open(tdir,'r') as template:
         for line in template:
 
+            # path on the cluster/spinoza
+            cluster_base_dir = base_dir.replace('Volumes','g')
+            
             #insert correct directory name
+            if 'dummyBaseDir' in line:
+                line = ''.join( ['BaseDir="',cluster_base_dir,'"\n'] )
+                print(line)
+
+        
+            #insert correct movie directory name
             if 'dummyDir' in line:
                 line = ''.join( ['MovieDir="',MovieDir,'"\n'] )
                 print(line)
@@ -53,7 +62,7 @@ def create_slurm_script(MovieDir, cluster_dir):
 
     # directory to save the slurm script
     sname = 'start_' + MovieDir + '.sh'
-    sdir = os.path.join(cluster_dir,sname)
+    sdir = os.path.join(base_dir,sname)
             
     with open(sdir,'w') as OUT:
         for line in out_lines:
@@ -61,9 +70,10 @@ def create_slurm_script(MovieDir, cluster_dir):
 
     IJ.log('\nwrote slurm script to:\n'+sdir)
 
-def create_wavelet_script(MovieDir,cluster_dir,dt,Tmin,Tmax,nT):
+def create_wavelet_script(MovieDir,base_dir,dt,Tmin,Tmax,nT):
 
-    # global scriptpath for template location
+    # global scriptpath for template location!
+    
     tdir = os.path.join(script_path,'ana_Movie_template.py')
     out_lines = []
     with open(tdir,'r') as template:
@@ -99,7 +109,7 @@ def create_wavelet_script(MovieDir,cluster_dir,dt,Tmin,Tmax,nT):
     #--------------------------------------------
     
     # directory to save the slurm script
-    sdir = os.path.join(cluster_dir,MovieDir,sname)
+    sdir = os.path.join(base_dir,MovieDir,sname)
             
     with open(sdir,'w') as OUT:
         for line in out_lines:
@@ -139,9 +149,9 @@ def run():
         IJ.log("Error: only one slice allowed, use maximum projection first..exiting!")
         return
             
-    if not os.path.exists(cluster_base_dir):
-        display_msg("No group share?!",cluster_base_dir + "\nnot found..have you mounted the group share?")
-        IJ.log("Directory\n" + cluster_base_dir + "\nnot found..have you mounted the group share?")
+    if not os.path.exists(base_dir):
+        display_msg("No group share?!",base_dir + "\nnot found..have you mounted the group share?")
+        IJ.log("Directory\n" + base_dir + "\nnot found..have you mounted the group share?")
         return
 
     if not os.path.exists(script_path):
@@ -149,28 +159,25 @@ def run():
         IJ.log("Script directory\n" + script_path + "\nnot found..have you mounted the group share?")
         return
 
-    message = ''' 
-    Type in a subdirectory of /vLab/WaveletMovieBatch 
-    For example 'Christine' will set /vLab/WaveletMovieBatch/Cristine 
-    as the working directory! 
-    Leave blank if you want to work directly in /vLab/WaveletMovieBatch.
-    '''
-    gd = GenericDialog("Specify working directory")    
-    gd.addMessage(message)
-    gd.addStringField('Subdirectory:',None)
-    gd.showDialog()
-    sub_dir_str = gd.getNextString()
+    dc = DirectoryChooser('Choose a directory on the group share')
+    dc.setDefaultDirectory(base_dir)
+
+    #-------------- user's directory------------------
+    user_base_dir = dc.getDirectory()
+    #-------------------------------------------------
+
     
-    cluster_dir = os.path.join(cluster_base_dir,sub_dir_str)
-    if not os.path.exists(cluster_dir):
-        os.mkdir(base_dir)
-        IJ.log("Created directory " + cluster_dir)
-    else: 
-        IJ.log("Working in " + cluster_dir)
-    return
+    if not 'vLab' in user_base_dir:
+        display_msg("Invalid directory", "Please choose a directory in ../aulehla/vLab !")
+        return
+
+
+    IJ.log("Working in " + user_base_dir)
     
     # create the working directory from the movie title
-    wdir = os.path.join(cluster_dir,title) # the working directory
+    #-------- movie's directory-----------------
+    wdir = os.path.join(user_base_dir,title) # the working directory
+    #-------------------------------------------
     if not os.path.exists(wdir):
         IJ.log('Created ' + wdir)
         os.mkdir(wdir)
@@ -209,10 +216,10 @@ def run():
     nT = gd.getNextNumber()
 
     # create wavelet script
-    create_wavelet_script(title, cluster_dir, dt, Tmin, Tmax, nT)
+    create_wavelet_script(title, user_base_dir, dt, Tmin, Tmax, nT)
         
     # create the slurm script
-    create_slurm_script(title, cluster_dir)
+    create_slurm_script(title, user_base_dir)
 
     gd = GenericDialog("Almost done")
     gd.addMessage("All good, copy movie for processing onto vLab?")
@@ -222,7 +229,7 @@ def run():
         return
         
     file_path = os.path.join(wdir,'input_' + title)
-    IJ.log("Copied movie to " + file_path)
+    IJ.log("Copy movie to " + file_path)
 
     IJ.save(orig, file_path)
         

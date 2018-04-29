@@ -12,7 +12,8 @@
 #SBATCH --mem=2000 # memory given in MB
 #SBATCH -t 08:00:00
 
-BaseDir='/g/aulehla/vLab/WaveletMovieBatch'
+# BaseDir='/g/aulehla/vLab/WaveletMovieBatch'
+BaseDir='dummyBaseDir'
 MovieDir='dummyDir' # get replaced by prepare script
 SCRIPT='ana_Movie.py'
 
@@ -20,6 +21,8 @@ SCRIPT='ana_Movie.py'
 module load Anaconda3
 
 ##### copy files to /scratch working directory
+touch $BaseDir/$MovieDir/start # mark the beginning
+
 cp -R $BaseDir/$MovieDir /scratch/gregor
 
 
