@@ -29,6 +29,8 @@ Tmax = 220
 nT = 100
 #------------------------------------------------
 
+
+
 wdir = os.getcwd()
 print("Working in",wdir)
 
@@ -65,13 +67,17 @@ period_movie = np.zeros( rm.shape,dtype = np.float32 ) # initialize empty array 
 phase_movie = np.zeros( rm.shape,dtype = np.float32 ) # initialize empty array for output
 power_movie = np.zeros( rm.shape,dtype = np.float32 ) # initialize empty array for output
 
-print( 'Computing the transforms for {} pixels'.format(Npixels) )
+print('Wavelet parameters: ')
+msg = '\t dt = {:d}\n\t Tmin = {:.1f}\n\t Tmax = {:.1f}\n\t nT = {:d}'.format(dt,Tmin,Tmax,nT)
+print(msg)
+
+print( 'Computing the transforms for {} pixels:'.format(Npixels) )
 sys.stdout.flush()
 
 # loop over pixel coordinates
 for x in range(xdim):
 
-    print("X:",x)
+    print("X = ",x)
     sys.stdout.flush()
 
     for y in range(ydim):
