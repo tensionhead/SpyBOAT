@@ -3,8 +3,7 @@ from sys import path,exit
 from os import walk
 from os.path import expanduser
 from math import sqrt,cos,sin,pi
-scriptpath = expanduser('~/PSM/data/Henning_Kymos/scripts/')
-path.append( scriptpath)
+
 
 from ij import IJ,ImagePlus,ImageStack
 from java.awt import Color
@@ -48,7 +47,7 @@ def make_sine_movie(T,NFrames, width = 50, height = 50, dt = 10):
     return movie
 
 def make_pshift_sine_movie(T,NFrames, width = 50, height = 50, dt = 10):
-    ''' create a homogeneous oscillating movie '''
+    ''' create a homogeneous oscillating movie with two phase-shifted oscillations '''
 
     BitDepth = 16
     signal1 = [2**(BitDepth-1) * ( 1 + sin(2*pi/T * t * dt)) for t in range(NFrames)]
