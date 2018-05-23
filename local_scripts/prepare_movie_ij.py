@@ -232,6 +232,6 @@ def run():
     IJ.log("Copy movie to " + file_path)
 
     IJ.save(orig, file_path)
-        
+    IJ.log("Done!")    
 
 run()
