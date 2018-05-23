@@ -80,7 +80,7 @@ def create_wavelet_script(MovieDir,base_dir,dt,Tmin,Tmax,nT):
         for line in template:
 
             #insert dt
-            if 'dt =' in line:
+            if 'dt = 10' in line:
                 line = ''.join( ['dt = ',str(dt),'\n'] )
                 print(line)
 
