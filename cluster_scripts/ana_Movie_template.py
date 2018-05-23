@@ -69,7 +69,7 @@ power_movie = np.zeros( rm.shape,dtype = np.float32 ) # initialize empty array f
 
 # screwed up in older prepare_script :/
 #print('Wavelet parameters: ')
-#msg = '\t dt = {:.1f}\n\t Tmin = {:.1f}\n\t Tmax = {:.1f}\n\t nT = {:.1f}'.format(dt,Tmin,Tmax,nT)
+#msg = '\t dt = {:.1f}\n\t Tmin = {:.1f}\n\t Tmax = {:.1f}\n\t nT = {:.0f}'.format(dt,Tmin,Tmax,nT)
 #print(msg)
 
 print( 'Computing the transforms for {} pixels:'.format(Npixels) )
