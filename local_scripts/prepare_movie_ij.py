@@ -22,7 +22,7 @@ import pickle
 #-------------------------------------------------------------
 script_path = expanduser('/Volumes/aulehla/Gregor/progs/WaveletMovies/cluster_scripts') 
 # group share directory - set by user!
-base_dir = '/Volumes/aulehla/vLab/WaveletMovieBatch'
+base_dir = '/Volumes/aulehla/vLab/WaveletMovieBatch/'
 # cluster_base_dir = expanduser('~/PSM')
 #-------------------------------------------------------------
 
@@ -166,11 +166,13 @@ def run():
     user_base_dir = dc.getDirectory()
     #-------------------------------------------------
 
-    
+    if user_base_dir is None:
+        display_msg("Cancelled", "Aborted!")
+        return
+            
     if not 'vLab' in user_base_dir:
         display_msg("Invalid directory", "Please choose a directory in ../aulehla/vLab !")
         return
-
 
     IJ.log("Working in " + user_base_dir)
     
