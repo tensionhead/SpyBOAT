@@ -71,6 +71,7 @@ def create_mask_stack(orig,thresh_method = 'Huang',minThresh = None):
             maxv = ip.getMaxThreshold()
 
         ip.threshold(int(minThresh))
+        ip.multiply(1/255.) # for later image multiplication
         
         # mask_ip = ip.createMask()
         mask_stack.addSlice(ip)
