@@ -53,7 +53,7 @@ movie_name = movie_names[0].name # the roi movie file name
 movie_path = os.path.join( wdir, movie_name )
 print('Opening :', movie_name)
 rm = io.imread(movie_path, plugin="tifffile")
-
+print('Input shape:',rm.shape)
 #---------------------------------------------------------
 periods = np.linspace(Tmin,Tmax,nT)
 T_c = Tmax
