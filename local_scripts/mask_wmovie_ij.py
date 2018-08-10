@@ -77,49 +77,47 @@ def create_mask_stack(orig,thresh_method = 'Huang',minThresh = None):
         mask_stack.addSlice(ip)
 
     mask_imp = ImagePlus('Masks',mask_stack)
+    # mask_imp.show()
     return mask_imp
+
+
+
+# not really working :/
+def mask_from_power(Power_movie_name, wmovies):
+
+    gd = GenericDialog("Power Masking options")
     
-def run():    
+    gd.addMessage("Select a fixed threshold for the Wavelet Power")
+    gd.addNumericField("min. Intensity:",0,0)
     
-    dc = DirectoryChooser('Choose a directory')
-    dc.setDefaultDirectory(base_dir)
-    
-    #--------------working directory------------------
-    work_dir = dc.getDirectory()
-    #-------------------------------------------------
-    
-    if work_dir is None:
+    gd.showDialog()
+    if gd.wasCanceled():  
+        #IJ.log("Dialog canceled!" )
         display_msg("Cancelled", "Aborted!")
         return
 
-    tif_paths = glob.glob(os.path.join(work_dir,'*tif'))
-
-    try:
-        LuVeLu_movie = [n for n in tif_paths if 'input_' in n][0]
-    except IndexError:
-        display_msg('No Input Found', 'No "input_..." movie found in\n' + work_dir)
-        return
-    try:
-        Power_movie = glob.glob(os.path.join(work_dir,'power*tif'))[0]
-    except IndexError:
-        display_msg('File not found', 'No "power_..." movie found in\n' + work_dir)
-        return
-
-    # gd = GenericDialog("Masking from?")
+    minThresh = gd.getNextNumber()
     
-    # gd.addMessage("Use input intensity or Wavelet power?")
-    # gd.addChoice('Mask from',['Intensity','Power'],'Intensity')
-
-    
-    # to apply mask on all remaining tifs    
-    wmovies = [n for n in tif_paths if 'input_' not in n]
+    #-------------------------------------------
+    input_movie = IJ.openImage(Power_movie_name)
+    #-------------------------------------------
+    mask = create_mask_stack(input_movie,thresh_method = None, minThresh = minThresh)
         
-    # IJ.getFilePath # for interactive use
-    
+    # mask the wmovies: phase, period and power
 
-    gd = GenericDialog("Masking options")
+    # to apply mask on all remaining tifs    
+
+    for movie in wmovies:
+        imp = IJ.openImage(movie)
+        masked_imp = ic.run("Multiply create 32-bit stack",imp, mask)
+        masked_imp.show()
+
+
     
-    gd.addMessage("Select a fixed threshold value OR \n threshold method")
+def mask_from_int(LuVeLu_movie_name, wmovies):
+    gd = GenericDialog("Intensity Masking options")
+    
+    gd.addMessage("Select a fixed threshold value OR \n threshold method")    
     gd.addNumericField("min. Intensity:",0,0)
     gd.addCheckbox('Use automatic thresholding',False)
     gd.addChoice('Method',['Default','Huang','Otsu','Yen'],'Default')
@@ -137,17 +135,77 @@ def run():
     if use_auto:
         method = gd.getNextChoice()
 
-    #-----------------------------------
-    input_movie = IJ.openImage(LuVeLu_movie)
-    #-----------------------------------
+    #---------------------------------------
+    input_movie = IJ.openImage(LuVeLu_movie_name)
+    #---------------------------------------
     mask = create_mask_stack(input_movie,thresh_method = method, minThresh = minThresh)
         
-    # mask.show()
-    # return
     # mask the wmovies: phase, period and power
+
+    # to apply mask on all remaining tifs    
+    
     for movie in wmovies:
         imp = IJ.openImage(movie)
         masked_imp = ic.run("Multiply create 32-bit stack",imp, mask)
         masked_imp.show()
+
+
+def run():    
+    
+    dc = DirectoryChooser('Choose a directory')
+    dc.setDefaultDirectory(base_dir)
+    
+    #--------------working directory------------------
+    work_dir = dc.getDirectory()
+    #-------------------------------------------------
+    
+    if work_dir is None:
+        display_msg("Cancelled", "Aborted!")
+        return
+
+    tif_paths = glob.glob(os.path.join(work_dir,'*tif'))
+
+    # TODO: fix power masking (bit depth..)
+    # gd = GenericDialog("Masking from?")
+    
+    # gd.addMessage("Use input intensity or Wavelet power?")
+    # gd.addChoice('Mask from',['Intensity','Power'],'Intensity')
+    # gd.showDialog()
+    # if gd.wasCanceled():  
+    #     #IJ.log("Dialog canceled!" )
+    #     display_msg("Cancelled", "Aborted!")
+    #     return
+
+    # Intensity or Power?
+    #----------------------------------------------------
+    # mask_from = gd.getNextChoice() # not working.. :/
+    mask_from = 'Intensity' 
+    #----------------------------------------------------
+
+    # from intensity:
+    if mask_from == 'Intensity':
+        try:
+            LuVeLu_movie_name = [n for n in tif_paths if 'input_' in n][0]
+        except IndexError:
+            display_msg('No Input Found', 'No "input_..." movie found in\n' + work_dir)
+            return
+
+        wmovies = [n for n in tif_paths if 'input_' not in n]        
+        mask_from_int(LuVeLu_movie_name, wmovies)
+
+    # from power:
+    else:
+        try:
+            Power_movie_name = glob.glob(os.path.join(work_dir,'power*tif'))[0]
+        except IndexError:
+            display_msg('File not found', 'No "power_..." movie found in\n' + work_dir)
+            return
+
+        wmovies = [n for n in tif_paths if 'power_' not in n]        
+        mask_from_power(Power_movie_name, wmovies)
+
+
+    # IJ.getFilePath # for interactive use
+    
     
 run()
