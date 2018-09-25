@@ -12,29 +12,34 @@
 #SBATCH --mem=2000 # memory given in MB
 #SBATCH -t 08:00:00
 
-# BaseDir='/g/aulehla/vLab/WaveletMovieBatch'
-BaseDir='dummyBaseDir'
-MovieDir='dummyDir' # get replaced by prepare script
-SCRIPT='ana_Movie.py'
+# path to the python script doing the job
+# ScriptPath='/g/aulehla/Gregor/progs/WaveletMovies/src/ana_movie.py'
+ScriptPath='/g/aulehla/Gregor/progs/WaveletMovies/src/test_argparse.py'
+
+# the (soon to be) galaxy connected directory
+BaseDir='/g/aulehla/WaveletMovieBatchG'
+
+# these get replaced by the prepare script
+MovieSubDir='Gregor'
+MovieName='Luvelu-D_130-10_L6.tif'
+par_dt='3'
+par_Tmin='3.3'
+par_Tmax='33.3'
+par_nT='333'
 
 ##### load modules
 module load Anaconda3
 
-##### copy files to /scratch working directory
-touch $BaseDir/$MovieDir/start # mark the beginning
-
-cp -R $BaseDir/$MovieDir /scratch/gregor
-
 
 #### launch python
-cd /scratch/gregor/$MovieDir
-python3 $SCRIPT 
-echo 'Python is Done'
-touch cluster_done # mark it on /scratch
+python3 $ScriptPath --mov_dir $MovieSubDir --mov_name $MovieName  --dt $par_dt --Tmin $par_Tmin --Tmax $par_Tmax --nT $par_nT
 
-#### copy the results back
-cp /scratch/gregor/$MovieDir/phase*tif $BaseDir/$MovieDir/
-cp /scratch/gregor/$MovieDir/period*tif $BaseDir/$MovieDir/
-cp /scratch/gregor/$MovieDir/power*tif $BaseDir/$MovieDir/
-echo 'Everything is done'
-touch $BaseDir/$MovieDir/done
+# for people who peek into the directory
+ret=$?
+if [ $ret -ne 0 ]; then
+    touch $BaseDir/$MovieSubDir/error
+else
+    touch $BaseDir/$MovieSubDir/done
+fi
+
+
