@@ -36,12 +36,12 @@ if len(sys.argv) < 2:
 res = parser.parse_args(sys.argv[1:])
 
 wdir = res.mov_dir
-print("Working in",wdir)
+print("Working in:", wdir)
 
 movie_path = os.path.join( wdir, res.mov_name )
-print('Opening :', movie_path)
+print('Opening:', movie_path)
 
-movie = io.imread(movie_path, plugin="tifffile")
+movie = io.imread(movie_path + 's', plugin="tifffile")
 print('Input shape:',movie.shape)
 #---------------------------------------------------------
 sys.exit(0)
