@@ -13,22 +13,21 @@
 #SBATCH -t 08:00:00
 
 # path to the python script doing the job
-ScriptPath='../src/ana_movie.py' # relative to /WaveletMovies/cluster_scripts
+ScriptPath='ana_movie.py' # relative to /WaveletMovies/src/
 # ScriptPath='/g/aulehla/Gregor/progs/WaveletMovies/src/ana_movie.py' # works on spinoza
 
 # to test and define the arguments
-# ScriptPath='../src/test_argparse.py' # relative to /WaveletMovies/cluster_scripts
+# ScriptPath='test_argparse.py' # relative to /WaveletMovies/src/
 
 # the (soon to be) galaxy connected directory, needs to be changed to galaxy-storage location?!
 BaseDir='/g/aulehla/WaveletMovieBatchG'
 
-# all the following should get defined by the galaxy interface
+##### all the following should get defined by the galaxy interface
 
 #----------Paths and input file names--
 MovieSubDir='Gregor'
-MovieName='twosmall_hom_sines.tif'
-
-# MovieName='Luvelu-D_130-10_L6.tif'
+MovieName='twosmall_hom_sines.tif' # small synthetic example
+# MovieName='Luvelu-D_130-10_L6.tif' # a real (still small) example
 
 #--------Analysis parameters-----------
 par_dt='10'
@@ -37,7 +36,9 @@ par_Tmax='220'
 par_nT='20'
 #--------------------------------------
 
-# create output names from input_name
+##### galaxy interface input end
+
+# create output name parameters from input_name
 phase_out="phase_$MovieName"
 period_out="period_$MovieName"
 power_out="power_$MovieName"
