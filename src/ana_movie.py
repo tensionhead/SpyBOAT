@@ -33,27 +33,39 @@ if len(sys.argv) < 2:
     print("Missing command line arguments.. exiting")
     sys.exit(1)
 
-res = parser.parse_args(sys.argv[1:])
+arguments = parser.parse_args(sys.argv[1:])
 
-wdir = res.mov_dir
-print("Working in:", wdir)
+#------------Read the input----------------------------------------
+work_dir = arguments.mov_dir
+print("Working in:", work_dir)
+print('Opening:', arguments.mov_name)
 
-movie_path = os.path.join( wdir, res.mov_name )
-print('Opening:', movie_path)
-
-movie = io.imread(movie_path + 's', plugin="tifffile")
+movie_path = os.path.join( work_dir, arguments.mov_name )
+try:
+    movie = io.imread(movie_path, plugin="tifffile")
+except FileNotFoundError:
+    print("Couldn't open {}, check movie storage directory!".format(movie_path))
+    sys.exit(1)
+    
 print('Input shape:',movie.shape)
-#---------------------------------------------------------
-sys.exit(0)
-
-periods = np.linspace(Tmin,Tmax,nT)
-T_c = Tmax
-
 NFrames, ydim, xdim = movie.shape
 Npixels = ydim*xdim
+
+#------------Set output paths---------------------------------------
+out_path1 = os.path.join(work_dir, arguments.phase_out)
+out_path2 = os.path.join(work_dir, arguments.period_out)
+out_path3 = os.path.join(work_dir, arguments.power_out)
+
+#-------Set wavelet parameters--------------------------------------
+periods = np.linspace(arguments.Tmin, arguments.Tmax, arguments.nT)
+T_c = arguments.Tmax
+dt = arguments.dt
+#-------------------------------------------------------------------
+
 # not working, Fiji can't read this :/
 #wm = np.zeros( (*movie.shape,3),dtype = np.float32 ) # initialize empty array for output
 
+# create output arrays
 period_movie = np.zeros( movie.shape,dtype = np.float32 ) # initialize empty array for output
 phase_movie = np.zeros( movie.shape,dtype = np.float32 ) # initialize empty array for output
 power_movie = np.zeros( movie.shape,dtype = np.float32 ) # initialize empty array for output
@@ -87,18 +99,15 @@ for x in range(xdim):
         power_movie[:,y,x] = powers
         
 print('done with the transformations')
+
 # save phase movie
-out_name = movie_name.split('input_')[1] # clip off the prefix
-out_path1 = os.path.join(wdir, 'phase_' + out_name)
 io.imsave(out_path1, phase_movie)
 print('written',out_path1)
 
 # save period movie
-out_path2 = os.path.join(wdir, 'period_' + out_name)
 io.imsave(out_path2, period_movie)
 print('written',out_path2)
 
 # save power movie
-out_path3 = os.path.join(wdir, 'power_' + out_name)
 io.imsave(out_path3, power_movie)
 print('written',out_path3)

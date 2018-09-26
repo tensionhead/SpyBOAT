@@ -26,7 +26,9 @@ BaseDir='/g/aulehla/WaveletMovieBatchG'
 
 #----------Paths and input file names--
 MovieSubDir='Gregor'
-MovieName='Luvelu-D_130-10_L6.tif'
+MovieName='twosmall_hom_sines.tif'
+
+# MovieName='Luvelu-D_130-10_L6.tif'
 
 #--------Analysis parameters-----------
 par_dt='10'
