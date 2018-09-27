@@ -2,7 +2,7 @@
 ##### These lines are for Slurm
 #SBATCH --output=/home/moenke/hpc_output/wletM_%A.out
 #SBATCH --error=/home/moenke/hpc_output/wletM_%A.err
-#SBATCH -n 1 
+#SBATCH -n 1
 #SBATCH -N 1
 #SBATCH -A aulehla
 #SBATCH --job-name=wletmovie2
