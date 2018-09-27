@@ -68,7 +68,7 @@ def compute_spectrum(signal, dt, periods):
 
     if periods[0] < 2 * dt:
         print()
-        print('Warning, Nyquist limit is', 2 * dt, time_label, '!!')
+        print('Warning, Nyquist limit is', 2 * dt, '!!')
         print()
 
     signal = np.array(signal)
