@@ -5,14 +5,15 @@
 To run locally: 
 
 1. create a conda environment:
-```bash
-conda env create -f environment.yml
-```
+    
+    ``conda env create -f environment.yml``
+    
 2. Run the example from `src`:
-```bash
-cd src
-bash run_local.sh
-```
+
+    ```bash
+    cd src
+    bash run_local.sh
+    ```
 
 ## Available scripts:
 
