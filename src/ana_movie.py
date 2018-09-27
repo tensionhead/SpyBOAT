@@ -1,57 +1,50 @@
-import matplotlib
-
-matplotlib.use('Agg')
+#!/usr/bin/env python
 
 import argparse
 import sys
-import os
+
+import matplotlib
+matplotlib.use('Agg')
 
 from skimage import io
+
 
 # ----------Import Wavelet Routines----------------
 from wavelet_ana_lib import *
 
 # -------------------------------------------------
 
-parser = argparse.ArgumentParser(description='Process some string arguments')
+parser = argparse.ArgumentParser(description='Process some arguments.')
+
 # I/O
-parser.add_argument('--mov_dir', help='movie (sub-)directory', required='True', type=str)
-parser.add_argument('--mov_name', help='input movie file name', required='True', type=str)
-parser.add_argument('--phase_out', help='phase output file name', required='True', type=str)
-parser.add_argument('--period_out', help='period output file name', required='True', type=str)
-parser.add_argument('--power_out', help='power output file name', required='True', type=str)
+parser.add_argument('--movie', help="Movie location", required=True)
+parser.add_argument('--phase_out', help='Phase output file name', required=True)
+parser.add_argument('--period_out', help='Period output file name', required=True)
+parser.add_argument('--power_out', help='Power output file name', required=True)
+
 # Wavelet Parameters
-parser.add_argument('--dt', help='sampling interval', required='True', type=int)
-parser.add_argument('--Tmin', help='smallest period', required='True', type=float)
-parser.add_argument('--Tmax', help='biggest period', required='True', type=float)
-parser.add_argument('--nT', help='number of periods to scan for', required='True', type=int)
+parser.add_argument('--dt', help='Sampling interval', required=True, type=int)
+parser.add_argument('--Tmin', help='Smallest period', required=True, type=float)
+parser.add_argument('--Tmax', help='Biggest period', required=True, type=float)
+parser.add_argument('--nT', help='Number of periods to scan for', required=True, type=int)
 
-if len(sys.argv) < 2:
-    print("Missing command line arguments.. exiting")
-    sys.exit(1)
+parser.add_argument('--version', action='version', version='1.0.0')
 
-arguments = parser.parse_args(sys.argv[1:])
+arguments = parser.parse_args()
+
 
 # ------------Read the input----------------------------------------
-work_dir = arguments.mov_dir
-print("Working in:", work_dir)
-print('Opening:', arguments.mov_name)
+print('Opening:', arguments.movie)
 
-movie_path = os.path.join(work_dir, arguments.mov_name)
 try:
-    movie = io.imread(movie_path, plugin="tifffile")
-except io.FileNotFoundError:
-    print("Couldn't open {}, check movie storage directory!".format(movie_path))
+    movie = io.imread(arguments.movie, plugin="tifffile")
+except FileNotFoundError:
+    print("Couldn't open {}, check movie storage directory!".format(arguments.movie))
     sys.exit(1)
 
 print('Input shape:', movie.shape)
 NFrames, ydim, xdim = movie.shape
 Npixels = ydim * xdim
-
-# ------------Set output paths---------------------------------------
-out_path1 = os.path.join(work_dir, arguments.phase_out)
-out_path2 = os.path.join(work_dir, arguments.period_out)
-out_path3 = os.path.join(work_dir, arguments.power_out)
 
 # -------Set wavelet parameters--------------------------------------
 periods = np.linspace(arguments.Tmin, arguments.Tmax, arguments.nT)
@@ -93,16 +86,16 @@ for x in range(xdim):
         period_movie[:, y, x] = ridge_periods
         power_movie[:, y, x] = powers
 
-print('done with the transformations')
+print('Done with the transformations')
 
 # save phase movie
-io.imsave(out_path1, phase_movie)
-print('written', out_path1)
+io.imsave(arguments.phase_out, phase_movie, plugin="tifffile")
+print('Written', arguments.phase_out)
 
 # save period movie
-io.imsave(out_path2, period_movie)
-print('written', out_path2)
+io.imsave(arguments.period_out, period_movie, plugin="tifffile")
+print('Written', arguments.period_out)
 
 # save power movie
-io.imsave(out_path3, power_movie)
-print('written', out_path3)
+io.imsave(arguments.power_out, power_movie, plugin="tifffile")
+print('Written', arguments.period_out)

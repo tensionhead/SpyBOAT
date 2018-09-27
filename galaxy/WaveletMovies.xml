@@ -1,0 +1,47 @@
+<tool id="WaveletMovies" name="WaveletMovies" version="0.1.0">
+    <requirements>
+        <requirement type="package" version="0.14.0">scikit-image</requirement>
+        <requirement type="package" version="1.15.2">numpy</requirement>
+        <requirement type="package" version="1.1.0">scipy</requirement>
+        <requirement type="package" version="3.0.0">matplotlib</requirement>
+    </requirements>
+    <version_command>python $__tool_directory__/../src/ana_movie.py --version</version_command>
+    <command detect_errors="exit_code"><![CDATA[
+        python $__tool_directory__/../src/ana_movie.py
+          --movie $movie
+
+          --dt $dt
+          --Tmin $tmin
+          --Tmax $tmax
+          --nT $nt
+
+          --phase_out $phase_out
+          --period_out $period_out
+          --power_out $power_out
+    ]]></command>
+    <inputs>
+        <param name="movie" type="data" format="tiff" label="Movie to process"/>
+        <param name="dt" type="integer" value="10" label="Sampling interval">
+           <validator type="in_range" min="0" max="50"/>
+        </param>
+        <param name="tmin" type="integer" value="50" label="Smallest period"/>
+        <param name="tmax" type="integer" value="220" label="Biggest period"/>
+        <param name="nt" type="integer" value="20" label="Number of periods to scan for"/>
+    </inputs>
+    <outputs>
+        <data name="phase_out" format="tiff" label="Phase"/>
+        <data name="period_out" format="tiff" label="Period"/>
+        <data name="power_out" format="tiff" label="Power"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="movie" value="twosmall_hom_sines.tif" ftype="tiff"/>
+            <output name="phase_out" file="phase_out.tif" ftype="tiff" compare="sim_size"/>
+            <output name="period_out" file="period_out.tif" ftype="tiff" compare="sim_size"/>
+            <output name="power_out" file="power_out.tif" ftype="tiff" compare="sim_size"/>
+        </test>
+    </tests>
+    <help><![CDATA[
+        TODO: Fill in help.
+    ]]></help>
+</tool>

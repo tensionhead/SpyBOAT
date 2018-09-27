@@ -28,6 +28,7 @@ BaseDir='/g/aulehla/WaveletMovieBatchG'
 MovieSubDir='Gregor'
 MovieName='twosmall_hom_sines.tif' # small synthetic example
 # MovieName='Luvelu-D_130-10_L6.tif' # a real (still small) example
+movie="$BaseDir/$MovieName"
 
 #--------Analysis parameters-----------
 par_dt='10'
@@ -39,9 +40,9 @@ par_nT='20'
 ##### galaxy interface input end
 
 # create output name parameters from input_name
-phase_out="phase_$MovieName"
-period_out="period_$MovieName"
-power_out="power_$MovieName"
+phase_out="$BaseDir/phase_$MovieName"
+period_out="$BaseDir/period_$MovieName"
+power_out="$BaseDir/power_$MovieName"
 
 
 ##### load modules
@@ -49,7 +50,7 @@ module load Anaconda3
 
 
 #### launch python
-python3 $ScriptPath --mov_dir $BaseDir/$MovieSubDir --mov_name $MovieName  --phase_out $phase_out --period_out $period_out --power_out $power_out --dt $par_dt --Tmin $par_Tmin --Tmax $par_Tmax --nT $par_nT
+python3 $ScriptPath --movie $movie --phase_out $phase_out --period_out $period_out --power_out $power_out --dt $par_dt --Tmin $par_Tmin --Tmax $par_Tmax --nT $par_nT
 
 # for people who peek into the directory
 # ret=$?
