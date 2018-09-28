@@ -20,25 +20,25 @@
           --power_out $power_out
     ]]></command>
     <inputs>
-      <param name="movie" type="data" format="tiff" label="Movie to process"/>
+      <param name="movie" type="data" format="tiff" label="Movie to process" help="Select a movie to Wavelet process"/>
       
       <!--
 	  The following Wavelet parameters must have the same numerical type as defined in the
 	  argparse parser in ../src/ana_movie.py
       -->
 
-        <param name="dt" type="integer" value="10" label="Sampling interval">
+        <param name="dt" type="float" value="10" label="Sampling interval" help="Time span between to frames">
           <validator type="in_range" min="0" max="9999999"/>
         </param>
-        <param name="tmin" type="float" value="50" label="Smallest period">
+        <param name="tmin" type="float" value="50" label="Smallest period" help="Minimal period to scan for">
 	  <validator type="in_range" min="0" max="9999999"/>
         </param>
 
-        <param name="tmax" type="float" value="220" label="Biggest period">
+        <param name="tmax" type="float" value="220" label="Biggest period" help="Maximal period to scan for">
 	  <validator type="in_range" min="0" max="9999999"/>
         </param>
 
-        <param name="nt" type="integer" value="120" label="Number of periods to scan for">
+        <param name="nt" type="integer" value="120" label="Number of periods to scan for" help="Determines period resolution of the Wavelet power spectra">
 	  <validator type="in_range" min="0" max="9999999"/>
 	</param>
 
@@ -59,6 +59,48 @@
         </test>
     </tests>
     <help><![CDATA[
-        TODO: Fill in help.
+    **What it does**
+    
+    Wavelet transforms an image stack (X,Y,T) pixel by pixel. Removal of low-frequency trends is inbuild via sinc filtering. The three output movies generated (phase, period and power) have exactly the same dimensions (X,Y,T) as the input.
+
+        A pre-smoothing of the data is not implemented so far, but often recommendable. To limit the number of Wavelet transformations (computing time), trim away parts of the movie with no relevant data (e.g. outer dark edges).
+
+
+    Author: Gregor Moenke  (gregor.moenke@embl.de).
+
+    Wrapper by: Jelle Scholtalbers (jelle.scholtalbers@embl.de).
+
+    **Know what you are doing**
+
+    .. class:: warningmark
+
+    You will want to have understood the basics of time-frequency analysis with Wavelets 
+    and Sinc filters (e.g. http://en.wikipedia.org/wiki/Continuous_wavelet_transform
+    and http://www.dspguide.com/ch16.htm).
+
+    **Parameter List**
+
+
+
+    Sampling interval:
+    
+    Time passed between consecutive measurements, e.g 'an image every 10 minutes'.
+
+    Smallest Period:
+    
+    The minimal period to scan for, this is the higher (in frequency) end of the spectrum. A warning will be given during processing if the chosen value deceeds the Nyquist limit (2 times the sampling interval).
+
+    Biggest period:
+    
+    The maximal period to scan for, this is the lower (in frequency) end of the spectrum. The inbuild Sinc filter will remove any periods larger than this form the data. Due to the 'roll off' of the filter, this value should be chosen generously. A warning will be given during processing if the chosen value exceeds the length of the time series.
+
+    Number of periods to scan for:
+
+    This is the the number of convolutions computed per pixel.
+
+    Spectral resolution =  ( biggest period - smallest period ) / number of periods
+
+
+    
     ]]></help>
 </tool>

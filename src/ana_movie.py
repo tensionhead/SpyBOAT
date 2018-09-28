@@ -23,7 +23,7 @@ parser.add_argument('--period_out', help='Period output file name', required=Tru
 parser.add_argument('--power_out', help='Power output file name', required=True)
 
 # Wavelet Parameters
-parser.add_argument('--dt', help='Sampling interval', required=True, type=int)
+parser.add_argument('--dt', help='Sampling interval', required=True, type=float)
 parser.add_argument('--Tmin', help='Smallest period', required=True, type=float)
 parser.add_argument('--Tmax', help='Biggest period', required=True, type=float)
 parser.add_argument('--nT', help='Number of periods to scan for', required=True, type=int)
