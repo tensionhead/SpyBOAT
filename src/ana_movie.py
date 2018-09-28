@@ -21,6 +21,7 @@ parser.add_argument('--movie', help="Movie location", required=True)
 parser.add_argument('--phase_out', help='Phase output file name', required=True)
 parser.add_argument('--period_out', help='Period output file name', required=True)
 parser.add_argument('--power_out', help='Power output file name', required=True)
+parser.add_argument('--channel', help='which channel of the hyperstack to process', required=False, type=int, default=1)
 
 # Wavelet Parameters
 parser.add_argument('--dt', help='Sampling interval', required=True, type=float)
@@ -42,9 +43,30 @@ except FileNotFoundError:
     print("Couldn't open {}, check movie storage directory!".format(arguments.movie))
     sys.exit(1)
 
-print('Input shape:', movie.shape)
-NFrames, ydim, xdim = movie.shape
-Npixels = ydim * xdim
+print('Input shape:', movie.shape,'[Frames, Channels, X, Y]')
+
+# ---Hyperstack (X,Y,T,C) or normal image stack (X,Y,T)?-----------
+
+channel = arguments.channel # the selected channel
+
+if len(movie.shape) == 4:
+    print('Hyperstack detected, channel {} selected'.format(channel))
+    NFrames, ydim, xdim, NChannels = movie.shape
+
+    try:
+        movie = movie[:,channel-1,:,:] # select a channel
+    except IndexError:
+        print('Channel {} not found.. exiting!'.format(channel))
+        sys.exit(1)
+        
+elif len(movie.shape) == 3:
+    print('Stack detected')
+    NFrames, ydim, xdim = movie.shape
+    
+else:                      
+    print('Movie has wrong number of dimensions, is it a stack?!')
+    print('Exiting...')
+    sys.exit(1)
 
 # -------Set wavelet parameters--------------------------------------
 periods = np.linspace(arguments.Tmin, arguments.Tmax, arguments.nT)
@@ -60,14 +82,15 @@ period_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array
 phase_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
 power_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
 
+Npixels = ydim * xdim
 print('Computing the transforms for {} pixels:'.format(Npixels))
 sys.stdout.flush()
 
 # loop over pixel coordinates
 for x in range(xdim):
-
-    print("X = ", x)
-    sys.stdout.flush()
+    
+    # print("X = ", x)
+    # sys.stdout.flush()
 
     for y in range(ydim):
         input_vec = movie[:, y, x]  # the time_series at pixel (x,y)

@@ -17,7 +17,7 @@ ScriptPath='ana_movie.py' # relative to /WaveletMovies/src/
 # ScriptPath='/g/aulehla/Gregor/progs/WaveletMovies/src/ana_movie.py' # works on spinoza
 
 # to test and define the arguments
-# ScriptPath='test_argparse.py' # relative to /WaveletMovies/src/
+ScriptPath='test_argparse.py' # relative to /WaveletMovies/src/
 
 # the (soon to be) galaxy connected directory, needs to be changed to galaxy-storage location?!
 BaseDir='/g/aulehla/WaveletMovieBatchG'
@@ -29,7 +29,7 @@ MovieSubDir='Gregor'
 MovieName='twosmall_hom_sines.tif' # small synthetic example
 # MovieName='Luvelu-D_130-10_L6.tif' # a real (still small) example
 movie="$BaseDir/$MovieName"
-
+channel=2
 #--------Analysis parameters-----------
 par_dt='10'
 par_Tmin='50'
@@ -50,7 +50,7 @@ module load Anaconda3
 
 
 #### launch python
-python3 $ScriptPath --movie $movie --phase_out $phase_out --period_out $period_out --power_out $power_out --dt $par_dt --Tmin $par_Tmin --Tmax $par_Tmax --nT $par_nT
+python3 $ScriptPath --movie $movie --channel $channel --phase_out $phase_out --period_out $period_out --power_out $power_out --dt $par_dt --Tmin $par_Tmin --Tmax $par_Tmax --nT $par_nT
 
 # for people who peek into the directory
 # ret=$?

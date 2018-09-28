@@ -10,6 +10,8 @@
         python $__tool_directory__/../src/ana_movie.py
           --movie $movie
 
+	  --channel $channel
+	  
           --dt $dt
           --Tmin $tmin
           --Tmax $tmax
@@ -21,11 +23,16 @@
     ]]></command>
     <inputs>
       <param name="movie" type="data" format="tiff" label="Movie to process" help="Select a movie to Wavelet process"/>
-      
+
       <!--
 	  The following Wavelet parameters must have the same numerical type as defined in the
 	  argparse parser in ../src/ana_movie.py
       -->
+      
+      <param name="channel" type="integer" value="1" label="Channel" help="Select the channel to process">
+        <validator type="in_range" min="0" max="10"/>
+      </param>
+
 
         <param name="dt" type="float" value="10" label="Sampling interval" help="Time span between to frames">
           <validator type="in_range" min="0" max="9999999"/>
@@ -63,8 +70,9 @@
     
     Wavelet transforms an image stack (X,Y,T) pixel by pixel. Removal of low-frequency trends is inbuild via sinc filtering. The three output movies generated (phase, period and power) have exactly the same dimensions (X,Y,T) as the input.
 
-        A pre-smoothing of the data is not implemented so far, but often recommendable. To limit the number of Wavelet transformations (computing time), trim away parts of the movie with no relevant data (e.g. outer dark edges).
+    A pre-smoothing of the data is not implemented so far, but often recommendable. To limit the number of Wavelet transformations (computing time), trim away parts of the movie with no relevant data (e.g. outer dark edges).
 
+    If multiple channels present, select the one containing the oscillatory signal. Multiple slices (z-stack) are not supported.
 
     Author: Gregor Moenke  (gregor.moenke@embl.de).
 
