@@ -51,10 +51,11 @@ channel = arguments.channel # the selected channel
 
 if len(movie.shape) == 4:
     print('Hyperstack detected, channel {} selected'.format(channel))
-    NFrames, ydim, xdim, NChannels = movie.shape
 
     try:
         movie = movie[:,channel-1,:,:] # select a channel
+        NFrames, ydim, xdim = movie.shape
+
     except IndexError:
         print('Channel {} not found.. exiting!'.format(channel))
         sys.exit(1)

@@ -17,7 +17,7 @@ ScriptPath='ana_movie.py' # relative to /WaveletMovies/src/
 # ScriptPath='/g/aulehla/Gregor/progs/WaveletMovies/src/ana_movie.py' # works on spinoza
 
 # to test and define the arguments
-ScriptPath='test_argparse.py' # relative to /WaveletMovies/src/
+# ScriptPath='test_argparse.py' # relative to /WaveletMovies/src/
 
 # the (soon to be) galaxy connected directory, needs to be changed to galaxy-storage location?!
 BaseDir='/g/aulehla/WaveletMovieBatchG'
