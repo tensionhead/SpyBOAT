@@ -20,7 +20,7 @@ from java.util import Arrays
 import pickle
 
 #-------------------------------------------------------------
-script_path = expanduser('/Volumes/aulehla/Gregor/progs/WaveletMovies/cluster_scripts') 
+script_path = expanduser('/Volumes/aulehla/Gregor/progs/WaveletMovies-master/cluster_scripts') 
 # group share directory - set by user!
 base_dir = '/Volumes/aulehla/vLab/WaveletMovieBatch/'
 # cluster_base_dir = expanduser('~/PSM')

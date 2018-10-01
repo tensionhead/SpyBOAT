@@ -20,6 +20,8 @@
           --phase_out $phase_out
           --period_out $period_out
           --power_out $power_out
+	  > $log
+
     ]]></command>
     <inputs>
         <param name="movie" type="data" format="tiff" label="Movie to process"
@@ -51,9 +53,10 @@
     </inputs>
 
     <outputs>
-        <data name="phase_out" format="tiff" label="Phase"/>
-        <data name="period_out" format="tiff" label="Period"/>
-        <data name="power_out" format="tiff" label="Power"/>
+        <data name="phase_out" format="tiff" label="Phase ${on_string}"/>
+        <data name="period_out" format="tiff" label="Period ${on_string}"/>
+        <data name="power_out" format="tiff" label="Power ${on_string}"/>
+	<data name="log" format="txt" label="Log ${on_string}"/>
     </outputs>
 
     <tests>
