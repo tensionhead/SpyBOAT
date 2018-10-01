@@ -41,6 +41,8 @@ try:
     movie = io.imread(arguments.movie, plugin="tifffile")
 except FileNotFoundError:
     print("Couldn't open {}, check movie storage directory!".format(arguments.movie))
+    print("Couldn't open {}, check movie storage directory!".format(arguments.movie), file = sys.stderr)
+
     sys.exit(1)
 
 print('Input shape:', movie.shape,'[Frames, Channels, X, Y]')
@@ -57,7 +59,9 @@ if len(movie.shape) == 4:
         NFrames, ydim, xdim = movie.shape
 
     except IndexError:
+        print('Channel {} not found.. exiting!'.format(channel), file = sys.stderr)
         print('Channel {} not found.. exiting!'.format(channel))
+                
         sys.exit(1)
         
 elif len(movie.shape) == 3:
@@ -65,8 +69,9 @@ elif len(movie.shape) == 3:
     NFrames, ydim, xdim = movie.shape
     
 else:                      
-    print('Movie has wrong number of dimensions, is it a stack?!')
-    print('Exiting...')
+    print('Movie has wrong number of dimensions, is it a stack?!\nExiting..')
+    print('Movie has wrong number of dimensions, is it a stack?!\nExiting..', file = sys.stderr)
+
     sys.exit(1)
 
 # -------Set wavelet parameters--------------------------------------
