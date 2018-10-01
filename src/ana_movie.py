@@ -74,10 +74,24 @@ else:
 
     sys.exit(1)
 
-# -------Set wavelet parameters--------------------------------------
-periods = np.linspace(arguments.Tmin, arguments.Tmax, arguments.nT)
-T_c = arguments.Tmax
+# -------Set (and sanitize) wavelet parameters--------------------------------------
+
+Nt = len(movie[:, 0, 0])  # number of sample points, length of the input signal
+T_c = arguments.Tmax # sinc filter
 dt = arguments.dt
+Tmin = arguments.Tmin
+
+if arguments.Tmin < 2 * dt:
+    print('Warning, Nyquist limit is 2 times the sampling interval!')
+    print('..setting Tmin to {:.2f}'.format( 2 * dt ))
+    Tmin = 2 * dt
+
+if arguments.Tmax > dt * Nt: 
+    print ('Warning: Very large periods chosen!')
+    print('..setting Tmax to {:.2f}'.format( dt * Nt ))
+
+
+periods = np.linspace(arguments.Tmin, arguments.Tmax, arguments.nT)
 # -------------------------------------------------------------------
 
 # not working, Fiji can't read this :/
@@ -100,7 +114,6 @@ for x in range(xdim):
 
     for y in range(ydim):
         input_vec = movie[:, y, x]  # the time_series at pixel (x,y)
-        Nt = len(input_vec)  # number of sample points
         dsignal = sinc_smooth(input_vec, T_c, dt, detrend=True)
 
         modulus, wlet = compute_spectrum(dsignal, dt, periods)

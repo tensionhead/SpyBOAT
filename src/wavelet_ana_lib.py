@@ -66,10 +66,11 @@ def compute_spectrum(signal, dt, periods):
     wlet : the Wavelet transform with dimensions len(periods) x len(signal)
     """
 
-    if periods[0] < 2 * dt:
-        print()
-        print('Warning, Nyquist limit is', 2 * dt, '!!')
-        print()
+    # avoid output for every pixel
+    # if periods[0] < 2 * dt:
+    #     print()
+    #     print('Warning, Nyquist limit is', 2 * dt, '!!')
+    #     print()
 
     signal = np.array(signal)
     periods = np.array(periods)
@@ -86,11 +87,14 @@ def compute_spectrum(signal, dt, periods):
 
     # mx_per = 4*len(signal)/((omega0+sqrt(2+omega0**2))*sfreq)
     mx_per = dt * len(signal)
-    if max(periods) > mx_per:
-        print()
-        print ('Warning: Very large periods chosen!')
-        print ('Max. period should be <', np.rint(mx_per), 'min')
-        print ('proceeding anyways...')
+
+    # avoid output for every pixel
+    
+    # if max(periods) > mx_per:
+    #     print()
+    #     print ('Warning: Very large periods chosen!')
+    #     print ('Max. period should be <', np.rint(mx_per), 'min')
+    #     print ('proceeding anyways...')
 
     Morlet = mk_Morlet(omega0)
     wlet = CWT(signal, Morlet, scales)  # complex wavelet transform
