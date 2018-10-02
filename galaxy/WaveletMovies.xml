@@ -12,6 +12,8 @@
 
 	  --channel $channel
 
+	  --gauss_sigma $gauss_sigma
+
           --dt $dt
           --Tmin $tmin
           --Tmax $tmax
@@ -20,6 +22,7 @@
           --phase_out $phase_out
           --period_out $period_out
           --power_out $power_out
+	  
 	  > $log
 
     ]]></command>
@@ -35,6 +38,11 @@
         <param name="channel" type="integer" value="1" label="Channel" help="Select the channel to process">
             <validator type="in_range" min="0" max="10"/>
         </param>
+
+	<param name="gauss_sigma" type="float" value="0" label="Sigma" help="Width of the Gaussian smoothing kernel, leave at 0 if no pre-smoothing desired.">
+            <validator type="in_range" min="0" max="9999999"/>
+        </param>
+
         <param name="dt" type="float" value="10" label="Sampling interval" help="Time span between two frames">
             <validator type="in_range" min="0" max="9999999"/>
         </param>
@@ -72,7 +80,9 @@
 
     Wavelet transforms an image stack (X,Y,T) pixel by pixel. Removal of low-frequency trends is inbuild via sinc filtering. The three output movies generated (phase, period and power) have exactly the same dimensions (X,Y,T) as the input.
 
-    A pre-smoothing of the data is not implemented so far, but often recommendable. To limit the number of Wavelet transformations (computing time), trim away parts of the movie with no relevant data (e.g. outer dark edges).
+    Pre-smoothing of the data with Gaussian kernels is supported and often recommendable. 
+
+    To limit the number of Wavelet transformations (computing time), trim away parts of the movie with no relevant data (e.g. outer dark edges).
 
     If multiple channels present, select the one containing the oscillatory signal. Multiple slices (z-stack) are not supported.
 
@@ -89,6 +99,10 @@
     and http://www.dspguide.com/ch16.htm).
 
     **Parameter List**
+
+    - Sigma:
+
+        The Kernel bandwidth (in pixels) for the Gaussian kernels to use for pre-smoothing the input data. The default value of zero means that no pre-smoothing is done. Set this number to a desired kernel width to turn on pre-smoothing.
 
     - Sampling interval:
 

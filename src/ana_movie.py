@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 from skimage import io
+from scipy.ndimage import gaussian_filter
 
 
 # ----------Import Wavelet Routines----------------
@@ -22,6 +23,9 @@ parser.add_argument('--phase_out', help='Phase output file name', required=True)
 parser.add_argument('--period_out', help='Period output file name', required=True)
 parser.add_argument('--power_out', help='Power output file name', required=True)
 parser.add_argument('--channel', help='which channel of the hyperstack to process', required=False, type=int, default=1)
+
+# Gaussian smoothing
+parser.add_argument('--gauss_sigma', help='Gaussian smoothing parameter, 0 means no smoothing', required=False, default = 0, type=float)
 
 # Wavelet Parameters
 parser.add_argument('--dt', help='Sampling interval', required=True, type=float)
@@ -74,6 +78,20 @@ else:
 
     sys.exit(1)
 
+# --------Do (optional) pre-smoothing----------------------------------------------
+
+gsigma = arguments.gauss_sigma
+
+# check if pre-smoothing requested, a (non-sensical) value of 0 means no pre-smoothing
+if gsigma != 0:
+    print('Pre-smoothing the movie with Gaussians, sigma = {:.2f}'.format(arguments.gauss_sigma))
+
+    for frame in range(movie.shape[0]):
+        movie[frame,...] = gaussian_filter(movie[frame,...], sigma = gsigma)
+else:
+    print('No pre-smoothing requested')
+
+    
 # -------Set (and sanitize) wavelet parameters--------------------------------------
 
 Nt = len(movie[:, 0, 0])  # number of sample points, length of the input signal
