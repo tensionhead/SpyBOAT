@@ -12,29 +12,23 @@
 #SBATCH --mem=2000 # memory given in MB
 #SBATCH -t 08:00:00
 
-# path to the python script doing the job
-ScriptPath='ana_movie.py' # relative to /WaveletMovies/src/
-# ScriptPath='/g/aulehla/Gregor/progs/WaveletMovies/src/ana_movie.py' # works on spinoza
+# path to the python script doing the job, relative to spinoza/login.cluster
 
-# to test and define the arguments
-# ScriptPath='test_argparse.py' # relative to /WaveletMovies/src/
+ScriptPath='/g/aulehla/vLab/WaveletMovies/src/ana_movie.py' # relative to 
 
-# the (soon to be) galaxy connected directory, needs to be changed to galaxy-storage location?!
-BaseDir='/g/aulehla/WaveletMovieBatchG'
+# the batch folder for the manual (slurm) processing pipeline
+BaseDir='/g/aulehla/vLab/WaveletMovieBatch/'
 
-##### all the following should get defined by the galaxy interface
+##### all the following should get defined by local prepare script
 
 #----------Paths and input file names--
-MovieSubDir='Gregor'
-MovieName='twosmall_hom_sines.tif' # small synthetic example
-# MovieName='Luvelu-D_130-10_L6.tif' # a real (still small) example
-movie="$BaseDir/$MovieName"
-channel=2
+movie_path="$BaseDir/$MovieName"
+channel='dummyChan'
 #--------Analysis parameters-----------
-par_dt='10'
-par_Tmin='50'
-par_Tmax='220'
-par_nT='20'
+par_dt='dummydt'
+par_Tmin='dummyTmin'
+par_Tmax='dummyTmax'
+par_nT='dummynT'
 #--------------------------------------
 
 ##### galaxy interface input end
@@ -50,7 +44,7 @@ module load Anaconda3
 
 
 #### launch python
-python3 $ScriptPath --movie $movie --channel $channel --phase_out $phase_out --period_out $period_out --power_out $power_out --dt $par_dt --Tmin $par_Tmin --Tmax $par_Tmax --nT $par_nT
+python3 $ScriptPath --movie $movie_path --channel $channel --phase_out $phase_out --period_out $period_out --power_out $power_out --dt $par_dt --Tmin $par_Tmin --Tmax $par_Tmax --nT $par_nT
 
 # for people who peek into the directory
 # ret=$?

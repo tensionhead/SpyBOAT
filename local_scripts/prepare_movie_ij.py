@@ -19,8 +19,10 @@ from java.util import Arrays
 #from jarray import toString
 import pickle
 
+# the source directory should contain the slurm template script AND the processing scripts
 #-------------------------------------------------------------
-script_path = expanduser('/Volumes/aulehla/Gregor/progs/WaveletMovies-master/cluster_scripts') 
+script_path = expanduser('/Volumes/aulehla/vLab/WaveletMovieBatch/src/'
+
 # group share directory - set by user!
 base_dir = '/Volumes/aulehla/vLab/WaveletMovieBatch/'
 # cluster_base_dir = expanduser('~/PSM')
@@ -34,10 +36,11 @@ def display_msg(title,message):
     gd.showDialog()
 
 
-def create_slurm_script(MovieDir, base_dir):
+def create_slurm_script(MovieDir, base_dir, wav_pars, channel = 1):
 
-    # global scriptpath for template location
-
+    dt,Tmin,Tmax,nT = wav_pars # tuple as argument
+                         
+    # global scriptpath for template location                    
     tdir = os.path.join(script_path,'slurm_py_template.sh')
     out_lines = []
     with open(tdir,'r') as template:
@@ -46,15 +49,40 @@ def create_slurm_script(MovieDir, base_dir):
             # path on the cluster/spinoza
             cluster_base_dir = base_dir.replace('Volumes','g')
             
-            #insert correct directory name
+            # insert correct directory name
             if 'dummyBaseDir' in line:
                 line = ''.join( ['BaseDir="',cluster_base_dir,'"\n'] )
                 print(line)
 
         
-            #insert correct movie directory name
+            # insert correct movie directory name
             if 'dummyDir' in line:
                 line = ''.join( ['MovieDir="',MovieDir,'"\n'] )
+                print(line)
+                         
+            # insert selected channel
+            if 'dummyChan' in line:
+                line = ''.join( ['channel=',str(channel),'\n'] )
+                print(line)
+
+            # insert sampling interval
+            if 'dummydt' in line:
+                line = ''.join( ['par_dt=',str(dt),'\n'] )
+                print(line)
+                         
+            # insert minimal period
+            if 'dummyTmin' in line:
+                line = ''.join( ['par_Tmin=',str(Tmin),'\n'] )
+                print(line)
+
+            # insert maximal period
+            if 'dummyTmax' in line:
+                line = ''.join( ['par_Tmax=',str(Tmax),'\n'] )
+                print(line)
+                         
+            # insert number of periods to scan for
+            if 'dummynT' in line:
+                line = ''.join( ['par_nT=',str(nT),'\n'] )
                 print(line)
 
             #print(line)
@@ -69,53 +97,6 @@ def create_slurm_script(MovieDir, base_dir):
             OUT.write(line)
 
     IJ.log('\nwrote slurm script to:\n'+sdir)
-
-def create_wavelet_script(MovieDir,base_dir,dt,Tmin,Tmax,nT):
-
-    # global scriptpath for template location!
-    
-    tdir = os.path.join(script_path,'ana_Movie_template.py')
-    out_lines = []
-    with open(tdir,'r') as template:
-        for line in template:
-
-            #insert dt
-            if 'dt = 10' in line:
-                line = ''.join( ['dt = ',str(dt),'\n'] )
-                print(line)
-
-
-            #insert Tmin
-            if 'Tmin =' in line:
-                line = ''.join( ['Tmin = ',str(Tmin),'\n'] )
-                print(line)
-
-            #insert Tmax
-            if 'Tmax =' in line:
-                line = ''.join( ['Tmax = ',str(Tmax),'\n'] )
-                print(line)
-
-            #insert nT
-            if 'nT =' in line:
-                line = ''.join( ['nT = ',str(nT),'\n'] )
-                print(line)
-
-            #print(line)
-            out_lines.append(line)
-
-
-    #------Script to execute on the HPC cluster--
-    sname = 'ana_Movie.py'
-    #--------------------------------------------
-    
-    # directory to save the slurm script
-    sdir = os.path.join(base_dir,MovieDir,sname)
-            
-    with open(sdir,'w') as OUT:
-        for line in out_lines:
-            OUT.write(line)
-
-    IJ.log('\nwrote wavelet script to:\n'+sdir)
 
 
 # clears a directory!
@@ -138,11 +119,6 @@ def run():
     print(title)
 
     width,height,NChannels,NSlices,NFrames = orig.getDimensions()
-
-    if NChannels > 1:
-        IJ.log("Error: only one channel allowed, split the channels first..exiting!")
-        display_msg("Too much channels!","Only one channel allowed, split the channels first..exiting!")
-        return
 
     if NSlices > 1:
         display_msg("Too much slices!","Only one slice allowed, use maximum projection first..exiting!")
@@ -216,12 +192,9 @@ def run():
     Tmin = gd.getNextNumber()
     Tmax = gd.getNextNumber()
     nT = gd.getNextNumber()
-
-    # create wavelet script
-    create_wavelet_script(title, user_base_dir, dt, Tmin, Tmax, nT)
         
     # create the slurm script
-    create_slurm_script(title, user_base_dir)
+    create_slurm_script(title, user_base_dir, (dt,Tmin,Tmax,nT), channel)
 
     gd = GenericDialog("Almost done")
     gd.addMessage("All good, copy movie for processing onto vLab?")
