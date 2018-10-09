@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import argparse
 import sys
 
@@ -45,7 +44,7 @@ try:
     movie = io.imread(arguments.movie, plugin="tifffile")
 except FileNotFoundError:
     print("Couldn't open {}, check movie storage directory!".format(arguments.movie))
-    print("Couldn't open {}, check movie storage directory!".format(arguments.movie), file = sys.stderr)
+    print("Couldn't open {}, check movie storage directory!".format(arguments.movie), file=sys.stderr)
 
     sys.exit(1)
 
@@ -63,7 +62,7 @@ if len(movie.shape) == 4:
         NFrames, ydim, xdim = movie.shape
 
     except IndexError:
-        print('Channel {} not found.. exiting!'.format(channel), file = sys.stderr)
+        print('Channel {} not found.. exiting!'.format(channel), file=sys.stderr)
         print('Channel {} not found.. exiting!'.format(channel))
                 
         sys.exit(1)
@@ -74,7 +73,7 @@ elif len(movie.shape) == 3:
     
 else:                      
     print('Movie has wrong number of dimensions, is it a stack?!\nExiting..')
-    print('Movie has wrong number of dimensions, is it a stack?!\nExiting..', file = sys.stderr)
+    print('Movie has wrong number of dimensions, is it a stack?!\nExiting..', file=sys.stderr)
 
     sys.exit(1)
 
