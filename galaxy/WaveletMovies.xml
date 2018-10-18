@@ -62,10 +62,10 @@
     </inputs>
 
     <outputs>
-        <data name="phase_out" format="tiff" label="Phase ${on_string}"/>
-        <data name="period_out" format="tiff" label="Period ${on_string}"/>
-        <data name="power_out" format="tiff" label="Power ${on_string}"/>
-	<data name="log" format="txt" label="Log ${on_string}"/>
+        <data name="phase_out" format="tiff" label="phase ${movie.name}"/>
+        <data name="period_out" format="tiff" label="period ${movie.name}"/>
+        <data name="power_out" format="tiff" label="power ${movie.name}"/>
+	<data name="log" format="txt" label="WaveletMovies log: ${movie.name}"/>
     </outputs>
 
     <tests>
