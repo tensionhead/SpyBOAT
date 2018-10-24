@@ -48,19 +48,35 @@ except FileNotFoundError:
 
     sys.exit(1)
 
-print('Input shape:', movie.shape,'[Frames, Channels, X, Y]')
 
-# ---Hyperstack (X,Y,T,C) or normal image stack (X,Y,T)?-----------
+# ---Hyperstack (F,X,Y,C) or normal image stack (F,X,Y)?-----------
+
 
 channel = arguments.channel # the selected channel
 
 if len(movie.shape) == 4:
+
     print('Hyperstack detected, channel {} selected'.format(channel))
+    
+    F,X,Y,C = movie.shape # standard tiffile RGB(A) array shape for at least 3 channels
+
+
 
     try:
-        movie = movie[:,channel-1,:,:] # select a channel
-        NFrames, ydim, xdim = movie.shape
+        # if only two channels present, tifffile ordering sadly is F,C,X,Y
+        if movie.shape[1] == 2:
+            print('Input shape:', (F,C,Y,X), '[Frames, X, Y, Channels]')
+            movie = movie[:,channel-1,:,:] # select a channel
 
+        # normal F,X,Y,C ordering
+        else:
+            print('Input shape:', movie.shape, '[Frames, X, Y, Channels]')
+            movie = movie[:,:,:,channel-1] # select a channel
+      
+
+            
+        NFrames, ydim, xdim = movie.shape
+        
     except IndexError:
         print('Channel {} not found.. exiting!'.format(channel), file=sys.stderr)
         print('Channel {} not found.. exiting!'.format(channel))
@@ -72,8 +88,8 @@ elif len(movie.shape) == 3:
     NFrames, ydim, xdim = movie.shape
     
 else:                      
-    print('Movie has wrong number of dimensions, is it a stack?!\nExiting..')
-    print('Movie has wrong number of dimensions, is it a stack?!\nExiting..', file=sys.stderr)
+    print('Movie has wrong number of dimensions, is it a single slice stack?!\nExiting..')
+    print('Movie has wrong number of dimensions, is it a single slice stack?!\nExiting..', file=sys.stderr)
 
     sys.exit(1)
 
