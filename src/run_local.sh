@@ -11,8 +11,8 @@ python3 ana_movie.py --movie ../test_data/twosmall_sines_multichan3.tif --phase_
 
 printf "\nWarning examples:\n"
 
-# example multi_chan 2 channels command
-python3 ana_movie.py --movie ../test_data/twosmall_sines_multichan.tif --phase_out ../test_data/phase_mc2_out.tif --period_out ../test_data/period_mc2_out.tif --power_out ../test_data/power_mc2_out.tif --dt 7.5 --Tmin 3.2 --Tmax 2200 --nT 120 --channel 2 
+# example multi_chan 2 channels, Nyquist limit 
+python3 ana_movie.py --movie ../test_data/twosmall_sines_multichan.tif --phase_out ../test_data/phase_mc2_out.tif --period_out ../test_data/period_mc2_out.tif --power_out ../test_data/power_mc2_out.tif --dt 10. --Tmin 3.2 --Tmax 2200 --nT 350 --channel 1 
 
 
 # error examples

@@ -67,6 +67,8 @@ if len(movie.shape) == 4:
         if movie.shape[1] == 2:
             print('Input shape:', (F,C,Y,X), '[Frames, X, Y, Channels]')
             movie = movie[:,channel-1,:,:] # select a channel
+            # io.imsave('../test_data/2chan_movie.tif', movie, plugin="tifffile")
+
 
         # normal F,X,Y,C ordering
         else:
@@ -83,9 +85,11 @@ if len(movie.shape) == 4:
         
 elif len(movie.shape) == 3:
     print('Stack detected')
+    print('Input shape:', movie.shape, '[Frames, X, Y]')
     NFrames, ydim, xdim = movie.shape
     
-else:                      
+else:
+    print('Input shape:', movie.shape, '[?]')
     print('Movie has wrong number of dimensions, is it a single slice stack?!\nExiting..')
     print('Movie has wrong number of dimensions, is it a single slice stack?!\nExiting..', file=sys.stderr)
 
