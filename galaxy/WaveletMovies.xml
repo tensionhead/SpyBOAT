@@ -51,7 +51,8 @@
             <validator type="in_range" min="0" max="9999999"/>
         </param>
 
-        <param name="tmax" type="float" value="220" label="Biggest period" help="Maximal period to scan for">
+        <param name="tmax" type="float" value="220" label="Biggest period"
+	       help="Maximal period to scan for AND cut-off-period for sinc filter">
             <validator type="in_range" min="0" max="9999999"/>
         </param>
 

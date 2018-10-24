@@ -72,8 +72,6 @@ if len(movie.shape) == 4:
         else:
             print('Input shape:', movie.shape, '[Frames, X, Y, Channels]')
             movie = movie[:,:,:,channel-1] # select a channel
-      
-
             
         NFrames, ydim, xdim = movie.shape
         
