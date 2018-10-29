@@ -9,7 +9,7 @@
     <version_command>python $__tool_directory__/../src/ana_movie.py --version</version_command>
     <command detect_errors="exit_code"><![CDATA[
         python $__tool_directory__/../src/ana_movie.py
-          --movie $movie
+          --movie '$movie'
 
 	  --channel $channel
 
