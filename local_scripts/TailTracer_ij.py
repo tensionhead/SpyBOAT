@@ -756,7 +756,7 @@ def run():
     add_to_table(post_traj, int_table, 'posterior')
     add_to_table(mid_traj, int_table, 'half psm')
 
-    int_table.show('Intensity Results')
+    int_table.show(movie.getShortTitle() + ' Intensity')
 
     # ---- Start Roi application loop -------------------------------
     
