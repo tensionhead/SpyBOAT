@@ -58,17 +58,13 @@ if len(movie.shape) == 4:
 
     print('Hyperstack detected, channel {} selected'.format(channel))
     
-    F,X,Y,C = movie.shape # standard tiffile RGB(A) array shape for at least 3 channels
-
-
-
     try:
         # if only two channels present, tifffile ordering sadly is F,C,X,Y
-        if movie.shape[1] == 2:
-            print('Input shape:', (F,C,Y,X), '[Frames, X, Y, Channels]')
+        if movie.shape[1] == 2:            
+            F,C,X,Y = movie.shape # strange ordering                
+            print('Input shape:', (F,X,Y,C), '[Frames, X, Y, Channels]')
             movie = movie[:,channel-1,:,:] # select a channel
             # io.imsave('../test_data/2chan_movie.tif', movie, plugin="tifffile")
-
 
         # normal F,X,Y,C ordering
         else:
