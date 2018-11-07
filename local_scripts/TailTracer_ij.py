@@ -602,7 +602,7 @@ def apply_rois( post_rois, ant_rois, mid_rois ):
 
     # extract average phase of rois
     if phase_mov:
-        IJ.log('Measuring phases in' + movie.getShortTitle())        
+        IJ.log('Measuring phases in ' + movie.getShortTitle())        
         ant_traj = measure_phase_rois(movie, ant_rois)        
         post_traj = measure_phase_rois(movie, post_rois)        
         mid_traj = measure_phase_rois(movie, mid_rois)
