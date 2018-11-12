@@ -237,14 +237,14 @@ def get_largest_roi(roi_list):
     if len(roi_list) > 1:
         # IJ.log('Found more than one object, taking the biggest!')
 
-        max_per = 0 # check perimeter
+        max_size = 0 # check for area size
         max_ind = 0
         for ii,roi in enumerate(roi_list):
-            per = roi.getLength()
-            if per > max_per:
-                max_per = per
+            size = roi.getLength()
+            if size > max_size:
+                max_size = size
                 max_ind = ii
-            # IJ.log('Roi ' + str(ii) + ' perimeter: ' + str(per))
+
 
     largest_roi = roi_list[max_ind]
 
