@@ -171,4 +171,4 @@ print('Written', arguments.period_out)
 
 # save power movie
 io.imsave(arguments.power_out, power_movie, plugin="tifffile")
-print('Written', arguments.period_out)
+print('Written', arguments.power_out)
