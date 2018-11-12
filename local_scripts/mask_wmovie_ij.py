@@ -4,13 +4,15 @@ from os import walk,environ
 from os.path import expanduser
 from math import sqrt,cos,sin,pi
 
-from ij import IJ,ImagePlus,ImageStack
+import ij
+from ij import IJ,ImagePlus,ImageStack, WindowManager
 from ij.io import OpenDialog, DirectoryChooser
-from ij.gui import PolygonRoi,Roi,EllipseRoi,ShapeRoi,Overlay,Line 
-from ij.gui import GenericDialog,Overlay,Roi,DialogListener,Plot,ProfilePlot 
-from ij.plugin.filter import RankFilters,EDM,GaussianBlur,ParticleAnalyzer,BackgroundSubtracter
+from ij.gui import PolygonRoi, Roi, EllipseRoi, ShapeRoi, Overlay, Line 
+from ij.gui import GenericDialog, Overlay,Roi, NonBlockingGenericDialog
+from ij.plugin.filter import RankFilters, EDM, GaussianBlur, ParticleAnalyzer, BackgroundSubtracter
 from ij.measure import ResultsTable,Measurements
-from ij.plugin import ImageCalculator,Selection,ZProjector
+from ij.plugin import ImageCalculator,Selection,ZProjector, HyperStackConverter
+from ij.plugin.filter import ThresholdToSelection
 from ij.process import FloatProcessor,ShortProcessor, BinaryProcessor, ByteProcessor
 from java.awt import Color
 import re, glob
@@ -21,10 +23,6 @@ import pickle
 
 ic = ImageCalculator()
 
-#-------------------------------------------------------------
-base_dir = '/Volumes/aulehla/vLab/WaveletMovieBatch/'
-#-------------------------------------------------------------
-
 
 def display_msg(title,message):
     gd = GenericDialog(title)
@@ -32,180 +30,193 @@ def display_msg(title,message):
     gd.hideCancelButton()
     gd.showDialog()
 
+def get_largest_roi(roi_list):
 
-# works not for float processors :/
-def threshold_ip(ip,thresh):
-
-    ''' Returns a byte processor, 255 for unmasked '''
-
-    mask = ByteProcessor(ip, False)
-
-    width = ip.getWidth()
-    height = ip.getHeight()
-
-    for x in range(width):
-        for y in range(height):
-            val = ip.getPixel(x,y)
-            if val > thresh:
-                mask.putPixel(x,y,255) # over threshold
-            else:
-                mask.putPixel(x,y,0) # under threshold
-
-    return mask
-    
-def create_mask_stack(orig,thresh_method = 'Huang',minThresh = None):
-
-    width,height,NChannels,NSlices,NT = orig.getDimensions()
-    mask_stack = ImageStack(width,height)
-
-    # one-based-indexing! (input movies have only 1-slice)
-    NFrames = NT if NSlices < NT else NSlices
-    for frame in range(1,NFrames + 1):
-        orig.setPosition(frame)
-        ip = orig.getProcessor().duplicate()
-
-        # auto thresholding
-        if thresh_method:
-            ip.setAutoThreshold(thresh_method, True, False)
-            minThresh = ip.getMinThreshold() # set automatically
-            maxv = ip.getMaxThreshold()
-
-        ip.threshold(int(minThresh))
-        ip.multiply(1/255.) # for later image multiplication
-        
-        # mask_ip = ip.createMask()
-        mask_stack.addSlice(ip)
-
-    mask_imp = ImagePlus('Masks',mask_stack)
-    # mask_imp.show()
-    return mask_imp
-
-
-
-# not really working :/
-def mask_from_power(Power_movie_name, wmovies):
-
-    gd = GenericDialog("Power Masking options")
-    
-    gd.addMessage("Select a fixed threshold for the Wavelet Power")
-    gd.addNumericField("min. Intensity:",0,0)
-    
-    gd.showDialog()
-    if gd.wasCanceled():  
-        #IJ.log("Dialog canceled!" )
-        display_msg("Cancelled", "Aborted!")
+    if not roi_list:
+        print IJ.log('Found no object at all..aborting!!')
         return
 
-    minThresh = gd.getNextNumber()
+    max_ind = 0
+    if len(roi_list) > 1:
+        # IJ.log('Found more than one object, taking the biggest!')
+
+        max_size = 0 # check perimeter
+        max_ind = 0
+        for ii,roi in enumerate(roi_list):
+            size = len(roi.getContainedPoints())
+
+            if size > max_size:
+                max_size = size
+                max_ind = ii
+            # IJ.log('Roi ' + str(ii) + ' perimeter: ' + str(per))
+
+
+    largest_roi = roi_list[max_ind]
+
+    return largest_roi
+
+def slices_to_frames(hstack):
+
+    ''' Reorder Hyperstack in case of slices - frames confusion '''
     
-    #-------------------------------------------
-    input_movie = IJ.openImage(Power_movie_name)
-    #-------------------------------------------
-    mask = create_mask_stack(input_movie,thresh_method = None, minThresh = minThresh)
+    hc = HyperStackConverter()
+
+    x,y,c,z,t = hstack.getDimensions()
+
+    new_hstack = hstack # to avoid 'reference before assignment' error
+    # more slices than frames indicate mis-placed dimensions
+    if z > t:
+        IJ.log('Shuffling\n' + hstack.getShortTitle() + '\n slices to frames..')
+        new_hstack = hc.toHyperStack(hstack, c, t, z) # shuffle indices
+        IJ.log('New dimensions: ' + str(c) + ', ' + str(t) + ', ' + str(z))
+
+    else:
+        IJ.log(hstack.getShortTitle() + '\n needs no shuffling')
         
-    # mask the wmovies: phase, period and power
+    return new_hstack
 
-    # to apply mask on all remaining tifs    
+def create_mask_selection(movie, thresh_method = 'Huang', threshold = None):
 
-    for movie in wmovies:
-        imp = IJ.openImage(movie)
-        masked_imp = ic.run("Multiply create 32-bit stack",imp, mask)
-        masked_imp.show()
+    ''' 
+    If threshold is *None* use selected AutoThreshold, otherwise
+    use fixed *threshold* '''
 
-
+    C = movie.getC()
+    S = movie.getSlice()
+    NFrames = movie.getNFrames()
     
-def mask_from_int(LuVeLu_movie_name, wmovies):
-    gd = GenericDialog("Intensity Masking options")
+    maxThresh = 2**movie.getBitDepth()
     
-    gd.addMessage("Select a fixed threshold value OR \n threshold method")    
-    gd.addNumericField("min. Intensity:",0,0)
+    tts = ThresholdToSelection()
+
+    ov = Overlay() # to save the rois
+    for frame in range(1, NFrames + 1):
+        
+        movie.setPosition(C, S, frame)
+        ip = movie.getProcessor()
+        
+        # manual thresholding
+        if threshold:
+            ip.setThreshold( threshold, maxThresh, 0) # no LUT update
+
+        # automatic thresholding
+        else:
+            ip.setAutoThreshold(thresh_method, True, False)
+        
+        tts.setup("",movie)
+        shape_roi = tts.convert(ip)
+        
+        # only one connected roi present
+        if type(shape_roi) == ij.gui.PolygonRoi:
+            mask_roi = shape_roi
+            
+        else:
+            rois = shape_roi.getRois() # splits into sub rois
+            mask_roi = get_largest_roi(rois) # sort out smaller Rois
+
+        mask_roi.setPosition(frame)
+        ov.add(mask_roi)
+        
+    return ov
+        
+def apply_thresh_overlay( overlay ):
+
+    ''' Clear outside rois in overlay '''
+
+    # --- Dialog -----------------------------------
+    wlist = WindowManager.getImageTitles()
+    gd = NonBlockingGenericDialog('Apply Mask to')
+    gd.setCancelLabel('Exit')
+    gd.addChoice('Select Movie',wlist, wlist[0])
+    gd.addCheckbox('Duplicate', True)
+
+    gd.showDialog() # dialog is open
+
+    if gd.wasCanceled():
+        return False
+    
+    sel_win = gd.getNextChoice()
+    do_duplicate = gd.getNextBoolean()
+
+    # --- Dialog End ------------------------------
+    
+    win_name = IJ.selectWindow(sel_win)
+    movie = IJ.getImage()
+    movie = slices_to_frames(movie)
+
+    C = movie.getC()
+    S = movie.getSlice()
+    
+    if do_duplicate:
+        IJ.log('duplicating ' + movie.shortTitle  )
+        movie = movie.duplicate()
+
+    NFrames = movie.getNFrames()
+    
+    if overlay.size() != NFrames: # one roi for each frame!
+        display_msg('Mask count mismatch!', 'Mask count mismatch!\nGot ' + str(Nrois) + ' masks and ' + str(NFrames) + ' frames.. !')
+
+    for frame in range(1, NFrames + 1):
+        movie.setPosition(C, S, frame)
+        mask_roi = overlay.get(frame - 1)
+        ip = movie.getProcessor()
+        ip.setValue(0)
+        ip.setRoi( mask_roi )
+        ip.fillOutside(mask_roi)
+        
+    movie.show()
+    return True
+        
+def start_masking_menu():
+    
+    wlist = WindowManager.getImageTitles()
+    gd = GenericDialog('Masking - Setup')
+    gd.setCancelLabel('Exit')
+
+    gd.addChoice('Create mask from',wlist, wlist[0])
+    gd.addNumericField("Fixed threshold:",0,0)
     gd.addCheckbox('Use automatic thresholding',False)
     gd.addChoice('Method',['Default','Huang','Otsu','Yen'],'Default')
-    
+
     gd.showDialog()
-    if gd.wasCanceled():  
-        #IJ.log("Dialog canceled!" )
-        display_msg("Cancelled", "Aborted!")
+
+    if gd.wasCanceled():
+        return False
+
+    pdic = {}
+
+    pdic['sel_win'] = gd.getNextChoice()
+    pdic['threshold'] = gd.getNextNumber()
+    pdic['use_auto'] = gd.getNextBoolean()
+    pdic['thresh_method'] = gd.getNextChoice()
+
+    return pdic
+
+
+def run():
+    
+    pdic = start_masking_menu()
+
+    # exited..
+    if not pdic:
         return
-
-    minThresh = gd.getNextNumber()
-    use_auto = gd.getNextBoolean()
-
-    method = None # defaults to manual Threshold
-    if use_auto:
-        method = gd.getNextChoice()
-
-    #---------------------------------------
-    input_movie = IJ.openImage(LuVeLu_movie_name)
-    #---------------------------------------
-    mask = create_mask_stack(input_movie,thresh_method = method, minThresh = minThresh)
-        
-    # mask the wmovies: phase, period and power
-
-    # to apply mask on all remaining tifs    
     
-    for movie in wmovies:
-        imp = IJ.openImage(movie)
-        masked_imp = ic.run("Multiply create 32-bit stack",imp, mask)
-        masked_imp.show()
+    print pdic
 
+    IJ.selectWindow(pdic['sel_win'])
 
-def run():    
+    input_movie = IJ.getImage() # the movie to create the mask from
+
+    slices_to_frames(input_movie)
+
+    ov = create_mask_selection(input_movie,
+                               thresh_method = pdic['thresh_method'],
+                               threshold = pdic['threshold'])
+
+    input_movie.setOverlay(ov)
     
-    dc = DirectoryChooser('Choose a directory')
-    dc.setDefaultDirectory(base_dir)
-    
-    #--------------working directory------------------
-    work_dir = dc.getDirectory()
-    #-------------------------------------------------
-    
-    if work_dir is None:
-        display_msg("Cancelled", "Aborted!")
-        return
-
-    tif_paths = glob.glob(os.path.join(work_dir,'*tif'))
-
-    # TODO: fix power masking (bit depth..)
-    # gd = GenericDialog("Masking from?")
-    
-    # gd.addMessage("Use input intensity or Wavelet power?")
-    # gd.addChoice('Mask from',['Intensity','Power'],'Intensity')
-    # gd.showDialog()
-    # if gd.wasCanceled():  
-    #     #IJ.log("Dialog canceled!" )
-    #     display_msg("Cancelled", "Aborted!")
-    #     return
-
-    # Intensity or Power?
-    #----------------------------------------------------
-    # mask_from = gd.getNextChoice() # not working.. :/
-    mask_from = 'Intensity' 
-    #----------------------------------------------------
-
-    # from intensity:
-    if mask_from == 'Intensity':
-        try:
-            LuVeLu_movie_name = [n for n in tif_paths if 'input_' in n][0]
-        except IndexError:
-            display_msg('No Input Found', 'No "input_..." movie found in\n' + work_dir)
-            return
-
-        wmovies = [n for n in tif_paths if 'input_' not in n]        
-        mask_from_int(LuVeLu_movie_name, wmovies)
-
-    # from power:
-    else:
-        try:
-            Power_movie_name = glob.glob(os.path.join(work_dir,'power*tif'))[0]
-        except IndexError:
-            display_msg('File not found', 'No "power_..." movie found in\n' + work_dir)
-            return
-
-        wmovies = [n for n in tif_paths if 'power_' not in n]        
-        mask_from_power(Power_movie_name, wmovies)
-
-
-    # IJ.getFilePath # for interactive use
-    
-    
+    while True:
+        res = apply_thresh_overlay( ov )
+        if not res:
+            break # exit
 run()

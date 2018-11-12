@@ -1,0 +1,130 @@
+<tool id="WaveletMovies" name="WaveletMovies" version="0.1.0">
+    <requirements>
+        <requirement type="package" version="3.7">python</requirement>
+        <requirement type="package" version="0.14.0">scikit-image</requirement>
+        <requirement type="package" version="1.15.2">numpy</requirement>
+        <requirement type="package" version="1.1.0">scipy</requirement>
+        <requirement type="package" version="3.0.0">matplotlib</requirement>
+    </requirements>
+    <version_command>python $__tool_directory__/../src/ana_movie.py --version</version_command>
+    <command detect_errors="exit_code"><![CDATA[
+        python $__tool_directory__/../src/ana_movie.py
+          --movie '$movie'
+
+	  --channel $channel
+
+	  --gauss_sigma $gauss_sigma
+
+          --dt $dt
+          --Tmin $tmin
+          --Tmax $tmax
+          --nT $nt
+
+          --phase_out $phase_out
+          --period_out $period_out
+          --power_out $power_out
+	  
+	  > $log
+
+    ]]></command>
+    <inputs>
+        <param name="movie" type="data" format="tiff" label="Movie to process"
+               help="Select a movie to Wavelet process"/>
+
+        <!--
+        The following Wavelet parameters must have the same numerical type as defined in the
+        argparse parser in ../src/ana_movie.py
+        -->
+
+        <param name="channel" type="integer" value="1" label="Channel" help="Select the channel to process">
+            <validator type="in_range" min="0" max="10"/>
+        </param>
+
+	<param name="gauss_sigma" type="float" value="0" label="Sigma" help="Width of the Gaussian smoothing kernel, leave at 0 if no pre-smoothing desired.">
+            <validator type="in_range" min="0" max="9999999"/>
+        </param>
+
+        <param name="dt" type="float" value="10" label="Sampling interval" help="Time span between two frames">
+            <validator type="in_range" min="0" max="9999999"/>
+        </param>
+        <param name="tmin" type="float" value="50" label="Smallest period" help="Minimal period to scan for">
+            <validator type="in_range" min="0" max="9999999"/>
+        </param>
+
+        <param name="tmax" type="float" value="220" label="Biggest period"
+	       help="Maximal period to scan for AND cut-off-period for sinc filter">
+            <validator type="in_range" min="0" max="9999999"/>
+        </param>
+
+        <param name="nt" type="integer" value="120" label="Number of periods to scan for"
+               help="Determines period resolution of the Wavelet power spectra">
+            <validator type="in_range" min="0" max="9999999"/>
+        </param>
+    </inputs>
+
+    <outputs>
+        <data name="phase_out" format="tiff" label="phase ${movie.name}"/>
+        <data name="period_out" format="tiff" label="period ${movie.name}"/>
+        <data name="power_out" format="tiff" label="power ${movie.name}"/>
+	<data name="log" format="txt" label="WaveletMovies log: ${movie.name}"/>
+    </outputs>
+
+    <tests>
+        <test>
+            <param name="movie" value="twosmall_hom_sines.tif" ftype="tiff"/>
+            <output name="phase_out" file="phase_out.tif" ftype="tiff" compare="sim_size"/>
+            <output name="period_out" file="period_out.tif" ftype="tiff" compare="sim_size"/>
+            <output name="power_out" file="power_out.tif" ftype="tiff" compare="sim_size"/>
+        </test>
+    </tests>
+    <help><![CDATA[
+    **What it does**
+
+    Wavelet transforms an image stack (T,X,Y) pixel by pixel. Removal of low-frequency trends is inbuild via sinc filtering. The three output movies generated (phase, period and power) have exactly the same dimensions (T,X,Y) as the input.
+
+    Pre-smoothing of the data with Gaussian kernels is supported and often recommendable. 
+
+    To limit the number of Wavelet transformations (computing time), trim away parts of the movie with no relevant data (e.g. outer dark edges).
+
+    If multiple channels present, select the one containing the oscillatory signal. Multiple slices (z-stack) are not supported.
+
+    **Author**: Gregor Moenke (gregor.moenke@embl.de).
+
+    **Wrapper by**: Jelle Scholtalbers (jelle.scholtalbers@embl.de).
+
+    **Know what you are doing**
+
+    .. class:: warningmark
+
+    You will want to have understood the basics of time-frequency analysis with Wavelets
+    and Sinc filters (e.g. http://en.wikipedia.org/wiki/Continuous_wavelet_transform
+    and http://www.dspguide.com/ch16.htm).
+
+    **Parameter List**
+
+    - Sigma:
+
+        The Kernel bandwidth (in pixels) for the Gaussian kernels to use for pre-smoothing the input data. The default value of zero means that no pre-smoothing is done. Set this number to a desired kernel width to turn on pre-smoothing.
+
+    - Sampling interval:
+
+        Time passed between consecutive measurements, e.g 'an image every 10 minutes'.
+
+    - Smallest Period:
+
+        The minimal period to scan for, this is the higher (in frequency) end of the spectrum. A warning will be given during processing if the chosen value deceeds the Nyquist limit (2 times the sampling interval).
+
+    - Biggest period:
+
+        The maximal period to scan for, this is the lower (in frequency) end of the spectrum. The inbuild Sinc filter will remove any periods larger than this form the data. Due to the 'roll off' of the filter, this value should be chosen generously. A warning will be given during processing if the chosen value exceeds the length of the time series.
+
+    - Number of periods to scan for:
+
+        This is the the number of convolutions computed per pixel.
+
+        Spectral resolution =  ( biggest period - smallest period ) / number of periods
+
+
+
+    ]]></help>
+</tool>
