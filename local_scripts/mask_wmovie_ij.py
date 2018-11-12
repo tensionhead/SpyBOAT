@@ -7,9 +7,9 @@ from math import sqrt,cos,sin,pi
 import ij
 from ij import IJ,ImagePlus,ImageStack, WindowManager
 from ij.io import OpenDialog, DirectoryChooser
-from ij.gui import PolygonRoi,Roi,EllipseRoi,ShapeRoi,Overlay,Line 
-from ij.gui import GenericDialog,Overlay,Roi, NonBlockingGenericDialog
-from ij.plugin.filter import RankFilters,EDM,GaussianBlur,ParticleAnalyzer,BackgroundSubtracter
+from ij.gui import PolygonRoi, Roi, EllipseRoi, ShapeRoi, Overlay, Line 
+from ij.gui import GenericDialog, Overlay,Roi, NonBlockingGenericDialog
+from ij.plugin.filter import RankFilters, EDM, GaussianBlur, ParticleAnalyzer, BackgroundSubtracter
 from ij.measure import ResultsTable,Measurements
 from ij.plugin import ImageCalculator,Selection,ZProjector, HyperStackConverter
 from ij.plugin.filter import ThresholdToSelection
@@ -43,7 +43,7 @@ def get_largest_roi(roi_list):
         max_size = 0 # check perimeter
         max_ind = 0
         for ii,roi in enumerate(roi_list):
-            size = roi.size()
+            size = len(roi.getContainedPoints())
 
             if size > max_size:
                 max_size = size

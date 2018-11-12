@@ -245,7 +245,9 @@ def get_largest_roi(roi_list):
         max_size = 0 # check for area size
         max_ind = 0
         for ii,roi in enumerate(roi_list):
-            size = roi.getLength()
+            
+            size = len(roi.getContainedPoints())
+            
             if size > max_size:
                 max_size = size
                 max_ind = ii
