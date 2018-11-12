@@ -1,3 +1,6 @@
 old_version
 *_out.tif
 __pycache__
+/test_data/power*
+/test_data/period*
+/test_data/phase*
