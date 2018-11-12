@@ -142,6 +142,11 @@ def get_anterior_roi(imp, sigma, perc = 0.95):
     tts = ThresholdToSelection()
     tts.setup("",imp)
     shape_roi = tts.convert(ipr)
+
+    # no roi found
+    if shape_roi is None:
+        display_msg('No Roi', 'No anterior roi found, check movie.. exiting!')
+        return False
     
     # only one connected roi present
     if type(shape_roi) == ij.gui.PolygonRoi:
@@ -317,8 +322,9 @@ def mk_OvRoi(x, y, R = 10):
         
 
 def make_post_ant_mid_Rois(xps, yps, # psm outline coordinates
-                           ant_xs, ant_ys, # anterior roi centroid
+                           ant_xs, ant_ys, # anterior roi centroids
                            ant_w, R, # anterior x weight, Roi radius
+                           offset_x, # x-coordinate global offset
                            ant_offset_y, post_offset_y, # y coordinate offsets
                            ema_fac): # the EMA smoothing factor
 
@@ -348,6 +354,11 @@ def make_post_ant_mid_Rois(xps, yps, # psm outline coordinates
     # add anterior offset
     y_ant = [yp + ant_offset_y for yp in y_ant]
 
+    # add x-offset
+    x_post = [xp + offset_x for xp in x_post]
+    x_ant = [xp + offset_x for xp in x_ant]
+
+    
 
     # get mid PSM coordinates from smoothed ant/post
 
@@ -649,6 +660,7 @@ def start_menu():
     gd.addNumericField('Gaussian blur', 5, 1)
     gd.addNumericField('Anterior y-offset', 15, 0)
     gd.addNumericField('Posterior y-offset', -15, 0)
+    gd.addNumericField('x-offset', 0, 0)    
     gd.addNumericField('Roi radius', 15, 0)
     gd.addNumericField('EMA factor', 10, 0)
     gd.addNumericField('Half PSM x-bias', 0.8, 1)
@@ -669,6 +681,7 @@ def start_menu():
     pdic['sigma'] = gd.getNextNumber()
     pdic['ant_offset'] = gd.getNextNumber()
     pdic['post_offset'] = gd.getNextNumber()
+    pdic['offset_x'] = gd.getNextNumber()    
     pdic['roi_radius'] = gd.getNextNumber()
     pdic['ema_fac'] = gd.getNextNumber()
     pdic['ant_w'] = gd.getNextNumber() # x-bias of mid-psm roi
@@ -704,6 +717,7 @@ def run():
     
     # get the roi lists from the raw coordinates
     the_rois = make_post_ant_mid_Rois(xps, yps, ant_xs, ant_ys,
+                                      offset_x = params_dic['offset_x'],
                                       ant_offset_y = params_dic['ant_offset'],
                                       post_offset_y = params_dic['post_offset'],
                                       R = params_dic['roi_radius'],
