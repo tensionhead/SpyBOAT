@@ -7,14 +7,14 @@ from os.path import expanduser
 
 import ij
 from ij import IJ,ImagePlus,ImageStack,WindowManager
-from ij.process import ImageStatistics
+from ij.process import ImageStatistics, ShortProcessor, FloatProcessor
 from ij.io import SaveDialog
-from ij.gui import PolygonRoi,Roi,EllipseRoi,ShapeRoi,Overlay, OvalRoi 
+from ij.gui import PolygonRoi,Roi,EllipseRoi,ShapeRoi,Overlay, OvalRoi, ProfilePlot 
 from ij.gui import GenericDialog,Overlay,Roi,Plot, NonBlockingGenericDialog
 from ij.plugin.filter import GaussianBlur
 from ij.measure import ResultsTable,Measurements,SplineFitter
 from ij.plugin import ImageCalculator,Selection,ZProjector, HyperStackConverter
-from ij.plugin.filter import ThresholdToSelection
+from ij.plugin.filter import ThresholdToSelection, LutApplier
 from java.awt import Color
 from java.lang.Math import atan2, sin, cos
 
@@ -29,7 +29,11 @@ wshed_tol = 0.2 # adjustable watershed tolerance, .6 for 15-08 YZ
 show_binary = False # if segmentation fails, look at a single frame only!
 plot_color = Color.red
 roi_color = Color.orange
-x_or_y = 'y' # PSM should be at the bottom of the movie!
+x_or_y = 'y' # PSM posterior should be at the bottom of the movie!
+
+Color1 = Color(255,5,20,65)    # light red
+Color2 = Color(100,250,230,150) # light violet
+Color3 = Color(180,250,100,75) # light green
 #=============================================
 
 def ema_smoothing(data,s = None):
@@ -359,7 +363,6 @@ def make_post_ant_mid_Rois(xps, yps, # psm outline coordinates
     # add x-offset
     x_post = [xp + offset_x for xp in x_post]
     x_ant = [xp + offset_x for xp in x_ant]
-
     
 
     # get mid PSM coordinates from smoothed ant/post
@@ -388,6 +391,101 @@ def make_post_ant_mid_Rois(xps, yps, # psm outline coordinates
 
     return post_rois, ant_rois, mid_rois
 
+def get_psm_splines(the_rois, width = 20):
+
+    poly_rois = []
+    # fit a spline to the tracked PSM half
+    frame = 1
+    for proi, aroi, mroi in zip(*the_rois):
+        
+        p_x, p_y = proi.getContourCentroid()
+        a_x, a_y = aroi.getContourCentroid()
+        m_x, m_y = mroi.getContourCentroid()
+        
+        # spline fitting
+        psm_poly_roi = PolygonRoi([p_x, m_x, a_x], [p_y, m_y, a_y], Roi.POLYLINE)
+        psm_poly_roi.fitSpline()
+        psm_poly_roi.setStrokeWidth(width)
+        psm_poly_roi.setStrokeColor(Color1)
+        psm_poly_roi.setPosition(frame)
+        poly_rois.append(psm_poly_roi)
+
+        # for the kymograph, one pixel spacing
+        psm_polygon = psm_poly_roi.getInterpolatedPolygon(1,True)
+
+        frame += 1
+        
+    return poly_rois
+
+def make_kymograph(movie, psm_roi_splines):
+
+    Channel = movie.getChannel()
+    Slice = movie.getSlice()
+
+    # check dimensions needed
+    max_roi_length =  max( [roi_spline.getLength() for roi_spline in psm_roi_splines] )
+
+    # spatial extend of the kymograph
+    Nx = int( 1.1 * max_roi_length )
+    Nt = len(psm_roi_splines)
+
+    kymo = ShortProcessor( Nt, Nx ) # time x space
+
+    frame = 1
+    for roi_spline in psm_roi_splines:
+        movie.setPositionWithoutUpdate( Channel, Slice, frame )
+        movie.setRoi(roi_spline)
+        pp = ProfilePlot(movie, True)
+        profile = pp.getProfile() 
+        # put the profile in the processor, cast down to int and flip vertical
+        [kymo.putPixel( frame - 1, Nx - i, int(profile[i])) for i in range(len(profile))]
+        frame += 1
+
+    kymo_imp = ImagePlus('Kymograph', kymo)
+    
+    return kymo_imp
+
+def make_float_kymograph(movie, psm_roi_splines, phase = False):
+
+    Channel = movie.getChannel()
+    Slice = movie.getSlice()
+
+    # check dimensions needed
+    max_roi_length =  max( [roi_spline.getLength() for roi_spline in psm_roi_splines] )
+
+    # spatial extend of the kymograph
+    Nx = int( 1.1 * max_roi_length )
+    Nt = len(psm_roi_splines)
+
+    kymo = FloatProcessor( Nt, Nx ) # time x space
+
+    frame = 1
+    for roi_spline in psm_roi_splines:
+        
+        movie.setPositionWithoutUpdate( Channel, Slice, frame )
+
+        if phase:
+            roi_spline.setStrokeWidth(1) # avoid horizontal averaging
+        else:
+            pass # keep original width
+        
+        movie.setRoi(roi_spline)
+        # profile averaging has no effect?!
+        pp = ProfilePlot(movie, True)
+
+        profile = pp.getProfile() 
+        # put the profile in the processor and flip vertical
+        [kymo.putPixelValue( frame - 1, Nx - i, profile[i]) for i in range(len(profile))]
+        frame += 1
+
+    if phase:
+        kymo_imp = ImagePlus('Phase Kymograph', kymo)
+
+    else:
+        kymo_imp = ImagePlus('Kymograph', kymo)
+
+    return kymo_imp
+
 def measure_rois(movie, rois):
 
     # measures sequence of rois along frames!
@@ -411,7 +509,7 @@ def measure_rois(movie, rois):
         IJ.log('Warning less than 5 frames found..')
 
     for frame in range(1, NFrames + 1):
-        movie.setPosition(Channel, Slice, frame)
+        movie.setPositionWithoutUpdate(Channel, Slice, frame)
         movie.setRoi(rois[frame - 1])
         roi_mean = movie.getStatistics(Measurements.MEAN) # int 2 -> roi mean!
         res.append(roi_mean.mean)
@@ -440,7 +538,7 @@ def measure_phase_rois(movie, rois):
 
     for frame in range(1, NFrames + 1):
         roi = rois[frame - 1]
-        movie.setPosition(Channel, Slice, frame)
+        movie.setPositionWithoutUpdate(Channel, Slice, frame)
         movie.setRoi(roi)
         points = roi.getContainedPoints()
         ip = movie.getProcessor()
@@ -489,11 +587,10 @@ def extract_psm_coords(movie, direction = 'right', sigma = 5):
     width = dims[0]
     height = dims[1]
 
-    ov = Overlay()
+    ov = Overlay() # to store the raw outline rois
     
     xps,yps = [],[] # psm outline coordinates
     ant_xs, ant_ys = [],[] # anterior roi centroid coordinates
-    psm_rois = [] # store the outline PolygonRois
 
 
     # ---- extract the raw coordinates ------
@@ -540,14 +637,14 @@ def extract_psm_coords(movie, direction = 'right', sigma = 5):
         
         proi = PolygonRoi(xp,yp,Roi.POLYLINE)
         proi.setPosition(frame)
-        proi.setStrokeWidth(1.2) # psm outline
-        proi.setStrokeColor(Color.orange)
+        proi.setStrokeWidth(1.) # psm outline
+        proi.setStrokeColor(Color2)
 
-        psm_rois.append(proi)
-        # just for visual check of the raw segmentation
-
-        # raw coord rois
-        anterior_roi.setPosition(frame) # raw anterior
+        # raw percentile anterior rois
+        anterior_roi.setPosition(frame) 
+        anterior_roi.setColor(Color2)
+        anterior_roi.setStrokeWidth(1.)
+        
         ov.add(anterior_roi)
         ov.add(proi)
             
@@ -556,9 +653,11 @@ def extract_psm_coords(movie, direction = 'right', sigma = 5):
     # ---- end coordinate extraction loop -------------
     
 
-def apply_rois( post_rois, ant_rois, mid_rois ):
+def apply_rois( the_rois ):
 
-    ''' Measure along the moving rois '''
+    ''' Measure along the moving rois '''    
+
+    post_rois, ant_rois, mid_rois = the_rois
 
     # --- Dialog -----------------------------------
     wlist = WindowManager.getImageTitles()
@@ -566,7 +665,9 @@ def apply_rois( post_rois, ant_rois, mid_rois ):
     gd.setCancelLabel('Exit')
     gd.addChoice('Select Movie',wlist, wlist[0])
     gd.addCheckbox('Phase-Movie', False)
+    gd.addCheckbox('Make Kymograph', False)    
     gd.addCheckbox('Show Plots', True)
+
 
     gd.showDialog() # dialog is open
 
@@ -575,7 +676,9 @@ def apply_rois( post_rois, ant_rois, mid_rois ):
     
     sel_win = gd.getNextChoice()
     phase_mov = gd.getNextBoolean()
+    do_kymo = gd.getNextBoolean()        
     do_plot = gd.getNextBoolean()
+
 
     # --- Dialog End ------------------------------
     
@@ -595,6 +698,18 @@ def apply_rois( post_rois, ant_rois, mid_rois ):
 
     table = ResultsTable()
 
+    # Kymograph
+    if do_kymo:
+        psm_roi_splines = get_psm_splines( the_rois )
+        [ov.add(psm_roi) for psm_roi in psm_roi_splines]
+        if phase_mov:
+            IJ.log('Creating phase kymograph..')
+            kymo = make_float_kymograph(movie, psm_roi_splines, phase = True)
+        else:
+            IJ.log('Creating kymograph..')            
+            kymo = make_float_kymograph(movie, psm_roi_splines, phase = False)
+        kymo.show()
+    
     # measure the rois (period or power..)
     if not phase_mov:
         IJ.log('Measuring ' + movie.getShortTitle())
@@ -669,6 +784,7 @@ def start_menu():
     gd.addCheckbox('Show Intensity Plots', False)
     gd.addCheckbox('Show raw outlines', False)
     gd.addCheckbox('Create Coordinate Table', False)
+    gd.addCheckbox('Make Kymograph', False)
 
     gd.showDialog()
 
@@ -691,6 +807,7 @@ def start_menu():
     pdic['do_plots'] = gd.getNextBoolean()
     pdic['show_raw'] = gd.getNextBoolean()
     pdic['do_coord_table'] = gd.getNextBoolean()
+    pdic['do_kymo'] = gd.getNextBoolean()
     
     return pdic
 
@@ -708,11 +825,13 @@ def run():
     if not params_dic:
         return
 
-    # --- Generate the PSM Rois from the movie in focus ---------
+    ov = Overlay() # general overlay containing all Rois
+    
     IJ.selectWindow(params_dic['selected_window'])
     movie = IJ.getImage() 
-
     IJ.log('Started TailTracer on ' + str(movie.getShortTitle()))
+
+    # --- Generate the PSM Rois from the movie in focus ---------
     xps, yps, ant_xs, ant_ys, ov_raw = extract_psm_coords(movie,
                                                   direction = params_dic['direction'],
                                                   sigma = params_dic['sigma'])
@@ -728,12 +847,33 @@ def run():
     
     post_rois, ant_rois, mid_rois = the_rois
 
+    
+    # get the poly splines for the tracked PSM half
+    if params_dic['do_kymo']:
+        psm_roi_splines = get_psm_splines(the_rois)
+        [ov.add(psm_roi) for psm_roi in psm_roi_splines]    
+
+        kymo = make_kymograph(movie, psm_roi_splines)
+        kymo.show()
+        
+    # add Rois to Overlay
+    [ov.add(post_roi) for post_roi in post_rois]
+    [ov.add(ant_roi) for ant_roi in ant_rois]
+    [ov.add(mid_roi) for mid_roi in mid_rois]
+
+    # shove raw coord rois into general overlay
+    if params_dic['show_raw']:
+        [ov.add(ov_raw.get(i)) for i in range(ov_raw.size())] 
+
+    movie.setOverlay(ov)
+
+
     # put roi coordinates in table
     if params_dic['do_coord_table']:
         coord_table = ResultsTable()
         row = 0
         for proi, aroi, mroi in zip(*the_rois):
-            
+
             p_x, p_y = proi.getContourCentroid()
             coord_table.setValue('Post X', row, p_x)
             coord_table.setValue('Post Y', row, p_y)
@@ -744,28 +884,11 @@ def run():
             row += 1
             
         coord_table.show('Roi Coordinates')
-            
-    # add Rois to Overlay
-    ov = Overlay()
-    [ov.add(post_roi) for post_roi in post_rois]
-    [ov.add(ant_roi) for ant_roi in ant_rois]
-    [ov.add(mid_roi) for mid_roi in mid_rois]
-
-    # shove raw coord rois into general overlay
-    if params_dic['show_raw']:
-        [ov.add(ov_raw.get(i)) for i in range(ov_raw.size())] 
-    movie.setOverlay(ov)
-    
+                
     # measure the intensity using the rois
     ant_traj = measure_rois(movie, ant_rois)
     post_traj = measure_rois(movie, post_rois)
     mid_traj = measure_rois(movie, mid_rois)
-
-    # plot the trajectories
-    if params_dic['do_plots']:
-        plot_series(ant_traj, 'Anterior  Raw Signal', ylabel = 'signal')
-        plot_series(post_traj, 'Posterior Raw Signal', ylabel = 'signal')
-        plot_series(mid_traj, 'Half PSM Raw Signal', ylabel = 'signal')
 
     int_table = ResultsTable()
     add_to_table(ant_traj, int_table, 'anterior')
@@ -773,11 +896,18 @@ def run():
     add_to_table(mid_traj, int_table, 'half psm')
 
     int_table.show(movie.getShortTitle() + ' Intensity')
+    
+    # plot the trajectories
+    if params_dic['do_plots']:
+        plot_series(ant_traj, 'Anterior  Raw Signal', ylabel = 'signal')
+        plot_series(post_traj, 'Posterior Raw Signal', ylabel = 'signal')
+        plot_series(mid_traj, 'Half PSM Raw Signal', ylabel = 'signal')
+
 
     # ---- Start Roi application loop -------------------------------
-    
+
     while True:
-        ret = apply_rois(post_rois, ant_rois, mid_rois)
+        ret = apply_rois( the_rois )
         if not ret:
             break # end program when no other roi application desired
 
