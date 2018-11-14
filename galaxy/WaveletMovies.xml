@@ -66,7 +66,7 @@
         <data name="phase_out" format="tiff" label="phase ${movie.name}"/>
         <data name="period_out" format="tiff" label="period ${movie.name}"/>
         <data name="power_out" format="tiff" label="power ${movie.name}"/>
-	<data name="log" format="txt" label="WaveletMovies log: ${movie.name}"/>
+	    <data name="log" format="txt" label="log ${movie.name}.txt"/>
     </outputs>
 
     <tests>
