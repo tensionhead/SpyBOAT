@@ -583,6 +583,9 @@ def extract_psm_coords(movie, direction = 'right', sigma = 5, perc = 0.95):
     dims = movie.getDimensions()
     print dims
 
+    C = movie.getC()
+    S = movie.getSlice()
+    
     NFrames = dims[-1]
     width = dims[0]
     height = dims[1]
@@ -597,7 +600,7 @@ def extract_psm_coords(movie, direction = 'right', sigma = 5, perc = 0.95):
     for frame in range(1, NFrames +1):
         
         print 'frame:', frame
-        movie.setPosition(1,1,frame)
+        movie.setPosition(C,S,frame)
 
         # blurring
         ip = movie.getProcessor().duplicate()
@@ -636,12 +639,12 @@ def extract_psm_coords(movie, direction = 'right', sigma = 5, perc = 0.95):
 
         
         proi = PolygonRoi(xp,yp,Roi.POLYLINE)
-        proi.setPosition(frame)
+        proi.setPosition(C, S, frame)
         proi.setStrokeWidth(1.5) # psm outline
         proi.setStrokeColor(Color2)
 
         # raw percentile anterior rois
-        anterior_roi.setPosition(frame) 
+        anterior_roi.setPosition(C, S, frame) 
         anterior_roi.setColor(Color2)
         anterior_roi.setStrokeWidth(1.5)
         
