@@ -75,7 +75,7 @@ def slices_to_frames(hstack):
         
     return new_hstack
 
-def create_mask_selection(movie, thresh_method = 'Huang', threshold = None):
+def create_mask_selection(movie, sigma = 0, thresh_method = 'Huang', threshold = None):
 
     ''' 
     If threshold is *None* use selected AutoThreshold, otherwise
@@ -93,7 +93,10 @@ def create_mask_selection(movie, thresh_method = 'Huang', threshold = None):
     for frame in range(1, NFrames + 1):
         
         movie.setPosition(C, S, frame)
-        ip = movie.getProcessor()
+        ip = movie.getProcessor().duplicate()
+        # imp = ImagePlus('Blurred', ip)
+        if sigma != 0:
+            ip.blurGaussian(sigma)
         
         # manual thresholding
         if threshold:
@@ -114,7 +117,7 @@ def create_mask_selection(movie, thresh_method = 'Huang', threshold = None):
             rois = shape_roi.getRois() # splits into sub rois
             mask_roi = get_largest_roi(rois) # sort out smaller Rois
 
-        mask_roi.setPosition(frame)
+        mask_roi.setPosition(C, S, frame)
         ov.add(mask_roi)
         
     return ov
@@ -174,6 +177,7 @@ def start_masking_menu():
     gd.setCancelLabel('Exit')
 
     gd.addChoice('Create mask from',wlist, wlist[0])
+    gd.addNumericField("Gaussian blur:",0,1)    
     gd.addNumericField("Fixed threshold:",0,0)
     gd.addCheckbox('Use automatic thresholding',False)
     gd.addChoice('Method',['Default','Huang','Otsu','Yen'],'Default')
@@ -186,6 +190,7 @@ def start_masking_menu():
     pdic = {}
 
     pdic['sel_win'] = gd.getNextChoice()
+    pdic['sigma'] = gd.getNextNumber()    
     pdic['threshold'] = gd.getNextNumber()
     pdic['use_auto'] = gd.getNextBoolean()
     pdic['thresh_method'] = gd.getNextChoice()
@@ -210,6 +215,7 @@ def run():
     slices_to_frames(input_movie)
 
     ov = create_mask_selection(input_movie,
+                               sigma = pdic['sigma'],
                                thresh_method = pdic['thresh_method'],
                                threshold = pdic['threshold'])
 

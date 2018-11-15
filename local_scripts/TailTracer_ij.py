@@ -672,7 +672,7 @@ def apply_rois( the_rois ):
     gd.showDialog() # dialog is open
 
     if gd.wasCanceled():
-        return False
+        return False # to kill the main loop
     
     sel_win = gd.getNextChoice()
     phase_mov = gd.getNextBoolean()
