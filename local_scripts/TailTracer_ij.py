@@ -135,7 +135,7 @@ def mk_binary_tail(imp, sigma, watershed = watershed, wshed_tol = wshed_tol):
     
     return imp
 
-def get_anterior_roi(imp, sigma, perc = 0.95):
+def get_anterior_roi(imp, perc = 0.95):
 
     score =  get_score_at_percentile(imp, perc = perc)
     print 'score:', score
@@ -575,7 +575,7 @@ def slices_to_frames(hstack):
         
     return new_hstack
 
-def extract_psm_coords(movie, direction = 'right', sigma = 5):
+def extract_psm_coords(movie, direction = 'right', sigma = 5, perc = 0.95):
 
     ''' Segment the PSM in the tail and return the raw coordinates '''
     
@@ -601,7 +601,7 @@ def extract_psm_coords(movie, direction = 'right', sigma = 5):
 
         # blurring
         ip = movie.getProcessor().duplicate()
-        ip.blurGaussian(10)
+        ip.blurGaussian(sigma)
         imp = ImagePlus('Frame ' + str(frame), ip)
         
         xp, yp = get_psm_outline(imp, sigma, thresh_method = thresh_method,
@@ -628,7 +628,7 @@ def extract_psm_coords(movie, direction = 'right', sigma = 5):
         cropped_frame = ImagePlus('roi_crop',ip)
         # cropped_frame.show()
         
-        anterior_roi = get_anterior_roi(cropped_frame, sigma, perc = 0.99)
+        anterior_roi = get_anterior_roi(cropped_frame, perc = perc)
         ant_x, ant_y = anterior_roi.getContourCentroid()
         
         ant_xs.append(ant_x)
@@ -637,13 +637,13 @@ def extract_psm_coords(movie, direction = 'right', sigma = 5):
         
         proi = PolygonRoi(xp,yp,Roi.POLYLINE)
         proi.setPosition(frame)
-        proi.setStrokeWidth(1.) # psm outline
+        proi.setStrokeWidth(1.5) # psm outline
         proi.setStrokeColor(Color2)
 
         # raw percentile anterior rois
         anterior_roi.setPosition(frame) 
         anterior_roi.setColor(Color2)
-        anterior_roi.setStrokeWidth(1.)
+        anterior_roi.setStrokeWidth(1.5)
         
         ov.add(anterior_roi)
         ov.add(proi)
@@ -781,6 +781,8 @@ def start_menu():
     gd.addNumericField('Roi radius', 15, 0)
     gd.addNumericField('EMA factor', 10, 0)
     gd.addNumericField('Half PSM x-bias', 0.8, 1)
+    gd.addNumericField('Anterior percentile', 0.99, 3)
+    
     gd.addCheckbox('Show Intensity Plots', False)
     gd.addCheckbox('Show raw outlines', False)
     gd.addCheckbox('Create Coordinate Table', False)
@@ -803,6 +805,7 @@ def start_menu():
     pdic['roi_radius'] = gd.getNextNumber()
     pdic['ema_fac'] = gd.getNextNumber()
     pdic['ant_w'] = gd.getNextNumber() # x-bias of mid-psm roi
+    pdic['perc'] = gd.getNextNumber() # x-bias of mid-psm roi
 
     pdic['do_plots'] = gd.getNextBoolean()
     pdic['show_raw'] = gd.getNextBoolean()
@@ -834,7 +837,8 @@ def run():
     # --- Generate the PSM Rois from the movie in focus ---------
     xps, yps, ant_xs, ant_ys, ov_raw = extract_psm_coords(movie,
                                                   direction = params_dic['direction'],
-                                                  sigma = params_dic['sigma'])
+                                                          sigma = params_dic['sigma'],
+                                                          perc = params_dic['perc']) # percentile for anterior
     
     # get the roi lists from the raw coordinates
     the_rois = make_post_ant_mid_Rois(xps, yps, ant_xs, ant_ys,
