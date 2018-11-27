@@ -773,6 +773,11 @@ def select_window(title):
 def start_menu():
     # --- Dialog -----------------------------------
     wlist = WindowManager.getImageTitles()
+
+    if not wlist:
+        display_msg('No movie found', 'Open a movie first!')
+        return False # exits main loop
+    
     gd = NonBlockingGenericDialog('TailTracer - Setup')
     gd.setCancelLabel('Exit')
     gd.addChoice('Select Movie to segment',wlist, wlist[0])
