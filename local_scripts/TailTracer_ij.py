@@ -357,6 +357,9 @@ def make_post_ant_mid_Rois(xps, yps, # psm outline coordinates
     x_ant = ema_smoothing(ant_xs, s = ema_fac)
     y_ant = ema_smoothing(ant_ys, s = ema_fac)
 
+    # show ema in action
+    # smooth_series(ant_ys, sfac = 1/ema_fac, do_plot = True)
+
     # add anterior offset
     y_ant = [yp + ant_offset_y for yp in y_ant]
 
@@ -639,12 +642,12 @@ def extract_psm_coords(movie, direction = 'right', sigma = 5, perc = 0.95):
 
         
         proi = PolygonRoi(xp,yp,Roi.POLYLINE)
-        proi.setPosition(C, S, frame)
+        proi.setPosition(frame)
         proi.setStrokeWidth(1.5) # psm outline
         proi.setStrokeColor(Color2)
 
         # raw percentile anterior rois
-        anterior_roi.setPosition(C, S, frame) 
+        anterior_roi.setPosition(frame) 
         anterior_roi.setColor(Color2)
         anterior_roi.setStrokeWidth(1.5)
         

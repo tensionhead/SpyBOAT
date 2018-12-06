@@ -117,7 +117,7 @@ def create_mask_selection(movie, sigma = 0, thresh_method = 'Huang', threshold =
             rois = shape_roi.getRois() # splits into sub rois
             mask_roi = get_largest_roi(rois) # sort out smaller Rois
 
-        mask_roi.setPosition(C, S, frame)
+        mask_roi.setPosition(frame)
         ov.add(mask_roi)
         
     return ov
