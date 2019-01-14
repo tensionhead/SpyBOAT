@@ -46,7 +46,7 @@ def ema_smoothing(data,s = None, mav_win_len = 8):
 
     # initiliazing with mav
     res = [ sum([ 1./mav_win_len * data[i] for i in range(mav_win_len) ]) ]
-    print res,s,mav_win_len
+    # print res,s,mav_win_len
     # initializing with first val
     # res = [ data[0] ]
     for el in data[1:]:
@@ -358,7 +358,7 @@ def make_post_ant_mid_Rois(xps, yps, # psm outline coordinates
     y_ant = ema_smoothing(ant_ys, s = ema_fac)
 
     # show ema in action
-    smooth_series(ant_ys, sfac = ema_fac, do_plot = True)
+    # smooth_series(ant_ys, sfac = ema_fac, do_plot = True)
 
     # add anterior offset
     y_ant = [yp + ant_offset_y for yp in y_ant]
