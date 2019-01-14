@@ -36,19 +36,19 @@ Color2 = Color(100,250,230,150) # light violet
 Color3 = Color(180,250,100,75) # light green
 #=============================================
 
-def ema_smoothing(data,s = None):
+def ema_smoothing(data,s = None, mav_win_len = 8):
 
     ''' Exponential moving average '''
 
     if s is None:
         s = 1./len(data)
 
-    mav_win_len = int(s * len(data)) # size of initial window
+
     # initiliazing with mav
-    # res = [ sum([ 1./mav_win_len * data[i] for i in range(mav_win_len) ]) ]
-    
+    res = [ sum([ 1./mav_win_len * data[i] for i in range(mav_win_len) ]) ]
+    print res,s,mav_win_len
     # initializing with first val
-    res = [ data[0] ]
+    # res = [ data[0] ]
     for el in data[1:]:
         res.append(s*float(el) + (1-s)*res[-1])
         
@@ -83,7 +83,7 @@ def mean_phase(phases):
     
 def smooth_series(series, sfac = 1., do_plot = False):
     
-    ema_series = ema_smoothing(series, s = sfac/len(series))
+    ema_series = ema_smoothing(series, s = sfac)
     t = range(len(ema_series)) # "time vector"
     if do_plot:
        p = Plot('raw and EMA', 'frame','var')
@@ -358,7 +358,7 @@ def make_post_ant_mid_Rois(xps, yps, # psm outline coordinates
     y_ant = ema_smoothing(ant_ys, s = ema_fac)
 
     # show ema in action
-    # smooth_series(ant_ys, sfac = 1/ema_fac, do_plot = True)
+    smooth_series(ant_ys, sfac = ema_fac, do_plot = True)
 
     # add anterior offset
     y_ant = [yp + ant_offset_y for yp in y_ant]
@@ -673,6 +673,7 @@ def apply_rois( the_rois ):
     gd.addCheckbox('Phase-Movie', False)
     gd.addCheckbox('Make Kymograph', False)    
     gd.addCheckbox('Show Plots', True)
+    gd.addCheckbox('Just refresh window names', False)
 
 
     gd.showDialog() # dialog is open
@@ -684,9 +685,14 @@ def apply_rois( the_rois ):
     phase_mov = gd.getNextBoolean()
     do_kymo = gd.getNextBoolean()        
     do_plot = gd.getNextBoolean()
+    do_refresh = gd.getNextBoolean()
 
 
     # --- Dialog End ------------------------------
+
+    # re run to refresh window names
+    if do_refresh:
+        return True
     
     win_name = IJ.selectWindow(sel_win)
     movie = IJ.getImage()
@@ -785,13 +791,13 @@ def start_menu():
     gd.setCancelLabel('Exit')
     gd.addChoice('Select Movie to segment',wlist, wlist[0])
     gd.addChoice('Scan direction', ['right', 'left'], 'right')
-    gd.addNumericField('Gaussian blur', 5, 1)
-    gd.addNumericField('Anterior y-offset', 15, 0)
-    gd.addNumericField('Posterior y-offset', -15, 0)
+    gd.addNumericField('Gaussian blur', 10, 1)
+    gd.addNumericField('Anterior y-offset', 30, 0)
+    gd.addNumericField('Posterior y-offset', -30, 0)
     gd.addNumericField('x-offset', 0, 0)    
-    gd.addNumericField('Roi radius', 15, 0)
-    gd.addNumericField('EMA factor', 10, 0)
-    gd.addNumericField('Half PSM x-bias', 0.8, 1)
+    gd.addNumericField('Roi radius', 40, 0)
+    gd.addNumericField('EMA factor', 30, 0)
+    gd.addNumericField('Half PSM x-bias', 0.6, 1)
     gd.addNumericField('Anterior percentile', 0.99, 3)
     
     gd.addCheckbox('Show Intensity Plots', False)
