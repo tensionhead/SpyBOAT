@@ -158,7 +158,7 @@ def get_masked_gradient(frame, mask_value = 0):
 
 
 
-def show_flux_grad(frame, k = 15, vlen_perc = 99):
+def show_flux_grad(frame, k = 15, vlen_perc = 99, skip = 10):
 
     pdx, pdy, mask = get_masked_gradient(frame, mask_value = frame[0,0])
     # -grad phi
@@ -166,7 +166,7 @@ def show_flux_grad(frame, k = 15, vlen_perc = 99):
 
     fig, ax = ppl.subplots(num = 1)
     ax.imshow(frame, cmap = 'bwr')
-    show_vfield(vx, vy, skip = 6, vlen_perc = 99)
+    show_vfield(vx, vy, skip = skip, vlen_perc = vlen_perc)
     ax.axis('off')
 
     # # -- flux calculation --
@@ -184,13 +184,11 @@ def show_flux_grad(frame, k = 15, vlen_perc = 99):
     
     ppl.colorbar(im,ax = ax2)
     # vector field on flux
-    show_vfield(vx, vy, skip = 7, vlen_perc = 98, color = 'k')
+    show_vfield(vx, vy, skip = skip, vlen_perc = vlen_perc, color = 'k')
 
 
 def mk_flux_tifs(movie, k = 15, flux_range = 0.1):
-
-    # local output directory
-    tif_out_dir = expanduser('~/PSM/tif_dir/')
+    
     ppl.ioff()
     
     for i,frame in enumerate(movie):
@@ -206,7 +204,7 @@ def mk_flux_tifs(movie, k = 15, flux_range = 0.1):
         fig = ppl.figure(num = 134) ; fig.clear() ; ax = fig.gca()
         im = ax.imshow(flux, cmap = 'plasma', vmax = flux_range, vmin = -flux_range)
         # vector field on flux
-        show_vfield(vx, vy, skip = 7, vlen_perc = 98, color = 'k')
+        show_vfield(vx, vy, skip = 10, vlen_perc = 98, color = 'k')
 
         ax.axis('off')
         fig.subplots_adjust(left = 0, right = 1, bottom = 0, top = 1)
@@ -216,8 +214,6 @@ def mk_flux_tifs(movie, k = 15, flux_range = 0.1):
 
 def mk_gradient_tifs(movie, skip = 7):
 
-    # local output directory
-    tif_out_dir = expanduser('~/PSM/tif_dir/')
     ppl.ioff()
     
     for i,frame in enumerate(movie):
@@ -290,21 +286,28 @@ def synth_field(R = 50, k = 1, a2 = 0, eps = 0):
 # Axim = imread('../good_ones/masked_phase_sigma10_Axin_0905.tif', dtype = np.int16)
 # Luim1 = imread('../good_ones/masked_sigma10_phase_20180905_Luvelu_L1.tif')
 
+data_dir = expanduser('~/ownCloud/Shared/Luvelu_cell-ablation/')
+
 # (local) data directory
-data_dir = expanduser('~/PSM/data/phase_field_data/')
-g = glob(data_dir + '*.tif')
+# data_dir = expanduser('~/PSM/data/phase_field_data/')
+
+g = glob(data_dir + '*mask*phase*.tif')
 print(g)
-RAFL1 = imread(g[0])
-RAFL2 = imread(g[1])
+# L6SO = imread(g[0])
+# RAFL1 = imread(g[1])
+# RAFL2 = imread(g[2])
 
 cmap = cm.gray
 norm = Normalize() # initiate normalizing instance
+
+# local output directory
+tif_out_dir = expanduser('~/tif_dir/')
 
 
 # for the pyplots
 DPI = 180
 #--------
-im = RAFL1
+#im = RAFL1
 #im = Luim1
 #im = Axim
 #--------
