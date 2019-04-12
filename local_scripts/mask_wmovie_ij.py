@@ -108,13 +108,15 @@ def create_mask_selection(movie, sigma = 0, thresh_method = 'Huang', threshold =
         
         tts.setup("",movie)
         shape_roi = tts.convert(ip)
+
         
         # only one connected roi present
         if type(shape_roi) == ij.gui.PolygonRoi:
             mask_roi = shape_roi
             
         else:
-            rois = shape_roi.getRois() # splits into sub rois
+            # for disconnected regions.. take the shape_roi as is
+            # rois = shape_roi.getRois() # splits into sub rois
             # mask_roi = get_largest_roi(rois) # sort out smaller Rois
             mask_roi = shape_roi
             
