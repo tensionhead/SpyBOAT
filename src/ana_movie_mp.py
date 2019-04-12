@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import sys
+import multiprocessing as mp
 
 import matplotlib
 matplotlib.use('Agg')
@@ -23,6 +24,11 @@ parser.add_argument('--period_out', help='Period output file name', required=Tru
 parser.add_argument('--power_out', help='Power output file name', required=True)
 parser.add_argument('--channel', help='which channel of the hyperstack to process', required=False, type=int, default=1)
 
+# Multiprocessing
+
+parser.add_argument('--ncpu', help='Number of processors to use',
+                    required=False, type=int, default=1)
+
 # Gaussian smoothing
 parser.add_argument('--gauss_sigma', help='Gaussian smoothing parameter, 0 means no smoothing', required=False, default = 0, type=float)
 
@@ -35,7 +41,6 @@ parser.add_argument('--nT', help='Number of periods to scan for', required=True,
 parser.add_argument('--version', action='version', version='1.0.0')
 
 arguments = parser.parse_args()
-
 
 # ------------Read the input----------------------------------------
 print('Opening:', arguments.movie)
@@ -71,8 +76,6 @@ if len(movie.shape) == 4:
             print('Input shape:', movie.shape, '[Frames, X, Y, Channels]')
             movie = movie[:,:,:,channel-1] # select a channel
             
-        NFrames, ydim, xdim = movie.shape
-        
     except IndexError:
         print('Channel {} not found.. exiting!'.format(channel), file=sys.stderr)
         print('Channel {} not found.. exiting!'.format(channel))
@@ -82,7 +85,6 @@ if len(movie.shape) == 4:
 elif len(movie.shape) == 3:
     print('Stack detected')
     print('Input shape:', movie.shape, '[Frames, X, Y]')
-    NFrames, ydim, xdim = movie.shape
     
 else:
     print('Input shape:', movie.shape, '[?]')
@@ -107,7 +109,7 @@ else:
     
 # -------Set (and sanitize) wavelet parameters--------------------------------------
 
-Nt = len(movie[:, 0, 0])  # number of sample points, length of the input signal
+Nt = movie.shape[0]  # number of sample points, length of the input signal
 T_c = arguments.Tmax # sinc filter
 dt = arguments.dt
 Tmin = arguments.Tmin
@@ -123,47 +125,93 @@ if arguments.Tmax > dt * Nt:
 
 
 periods = np.linspace(arguments.Tmin, arguments.Tmax, arguments.nT)
-# -------------------------------------------------------------------
 
-# not working, Fiji can't read this :/
-# wm = np.zeros( (*movie.shape,3),dtype = np.float32 ) # initialize empty array for output
+# -------------------------------------------------------------------------------
+# the function to be executed in parallel, Wavelet parameters are global!
 
-# create output arrays
-period_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
-phase_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
-power_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
+def process_array(movie):
+    # create output arrays
+    period_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
+    phase_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
+    power_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
 
-Npixels = ydim * xdim
-print('Computing the transforms for {} pixels:'.format(Npixels))
-sys.stdout.flush()
-
-# loop over pixel coordinates
-for x in range(xdim):
+    ydim, xdim = movie.shape[1:] # F, Y, X ordering
     
-    # print("X = ", x)
-    # sys.stdout.flush()
+    Npixels = ydim * xdim
+    print(f'Computing the transforms for {Npixels} pixels')
+    sys.stdout.flush()
 
-    for y in range(ydim):
+    # loop over pixel coordinates
+    for x in range(xdim):
 
-        if (ydim*x + y)%10000 == 0 and x*y != 0:
-            print(f"Processed {ydim*x + y} pixels..")
-        
-        input_vec = movie[:, y, x]  # the time_series at pixel (x,y)
-        dsignal = sinc_smooth(input_vec, T_c, dt, detrend=True)
+        # print("X = ", x)
+        # sys.stdout.flush()
 
-        modulus, wlet = compute_spectrum(dsignal, dt, periods)
-        ridge_y = get_maxRidge(modulus)
+        for y in range(ydim):
 
-        # stdout format
-        ridge_periods = periods[ridge_y]
-        powers = modulus[ridge_y, np.arange(Nt)]
-        phases = np.angle(wlet[ridge_y, np.arange(Nt)])
+            if (ydim*x + y)%10000 == 0 and x*y != 0:
+                print(f"Processed {ydim*x + y} pixels..")
+            
+            input_vec = movie[:, y, x]  # the time_series at pixel (x,y)
+            dsignal = sinc_smooth(input_vec, T_c, dt, detrend=True)
 
-        phase_movie[:, y, x] = phases
-        period_movie[:, y, x] = ridge_periods
-        power_movie[:, y, x] = powers
+            modulus, wlet = compute_spectrum(dsignal, dt, periods)
+            ridge_y = get_maxRidge(modulus)
 
-print('Done with the transformations')
+            ridge_periods = periods[ridge_y]
+            powers = modulus[ridge_y, np.arange(Nt)]
+            phases = np.angle(wlet[ridge_y, np.arange(Nt)])
+
+            phase_movie[:, y, x] = phases
+            period_movie[:, y, x] = ridge_periods
+            power_movie[:, y, x] = powers
+
+    return phase_movie, period_movie, power_movie
+
+# ------ Set up Multiprocessing  --------------------------
+
+ncpu_avail = mp.cpu_count() # number of available processors
+ncpu_req = arguments.ncpu   # requested number of cpu's
+
+if ncpu_req < 1:
+    print(f"Error: Negative number ({ncpu_req}) of CPU's requested.. exiting!")
+    print(f"Error: Negative number ({ncpu_req}) of CPU's requested.. exiting!",file=sys.stderr)
+
+    sys.exit(1)
+
+print(f"{ncpu_avail} CPU's available")
+
+if ncpu_req > ncpu_avail:
+    print(f"Warning: requested {ncpu_req} CPU's but only {ncpu_avail} available!")
+    print(f"Setting number of requested CPU's to {ncpu_avail}..")
+    print('Multiprocessing enabled!')
+    
+    ncpu_req = ncpu_avail
+
+elif ncpu_req > 1:
+    print(f"Requested {ncpu_req} CPU's, multiprocessing enabled!")
+
+else:
+    print(f"Requested only {ncpu_req} CPU, no multiprocessing!")
+
+# initialize pool
+pool = mp.Pool( ncpu_req )
+    
+# split input movie row-wise (axis 1, axis 0 is time!)
+movie_split = np.array_split(movie, ncpu_req, axis = 1)
+
+# start the processes, result is list of tuples (phase, period, power)
+res_movies = pool.map( process_array, [movie for movie in movie_split] )
+
+# re-join the splitted output movies
+phase_movie = np.concatenate( [r[0] for r in res_movies], axis = 1 )
+period_movie = np.concatenate( [r[1] for r in res_movies], axis = 1 )
+power_movie = np.concatenate( [r[2] for r in res_movies], axis = 1 )
+
+
+print('Done with all transformations')
+
+# ---- Output -----------------------------------------------
 
 # save phase movie
 io.imsave(arguments.phase_out, phase_movie, plugin="tifffile")
