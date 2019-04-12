@@ -126,6 +126,7 @@ if arguments.Tmax > dt * Nt:
 
 periods = np.linspace(arguments.Tmin, arguments.Tmax, arguments.nT)
 
+# -------------------------------------------------------------------------------
 # the function to be executed in parallel, Wavelet parameters are global!
 
 def process_array(movie):
@@ -148,7 +149,7 @@ def process_array(movie):
 
         for y in range(ydim):
 
-            if (ydim*x + y)%5000 == 0 and x*y != 0:
+            if (ydim*x + y)%10000 == 0 and x*y != 0:
                 print(f"Processed {ydim*x + y} pixels..")
             
             input_vec = movie[:, y, x]  # the time_series at pixel (x,y)

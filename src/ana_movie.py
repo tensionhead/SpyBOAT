@@ -144,6 +144,10 @@ for x in range(xdim):
     # sys.stdout.flush()
 
     for y in range(ydim):
+
+        if (ydim*x + y)%10000 == 0 and x*y != 0:
+            print(f"Processed {ydim*x + y} pixels..")
+        
         input_vec = movie[:, y, x]  # the time_series at pixel (x,y)
         dsignal = sinc_smooth(input_vec, T_c, dt, detrend=True)
 
