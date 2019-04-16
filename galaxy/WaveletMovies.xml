@@ -24,7 +24,7 @@
           --period_out $period_out
           --power_out $power_out
 	      
-          --ncpu ${GALAXY_SLOTS:-8}
+          --ncpu "\${GALAXY_SLOTS:-8}"
 	  > $log
 
     ]]></command>
