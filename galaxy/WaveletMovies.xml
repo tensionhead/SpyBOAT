@@ -1,4 +1,4 @@
-<tool id="WaveletMovies" name="WaveletMovies" version="0.1.0">
+<tool id="WaveletMovies" name="WaveletMovies" version="1.0.0">
     <requirements>
         <requirement type="package" version="3.7">python</requirement>
         <requirement type="package" version="0.14.0">scikit-image</requirement>
@@ -6,14 +6,14 @@
         <requirement type="package" version="1.1.0">scipy</requirement>
         <requirement type="package" version="3.0.0">matplotlib</requirement>
     </requirements>
-    <version_command>python $__tool_directory__/../src/ana_movie.py --version</version_command>
+    <version_command>python $__tool_directory__/../src/ana_movie_mp.py --version</version_command>
     <command detect_errors="exit_code"><![CDATA[
-        python $__tool_directory__/../src/ana_movie.py
+        python $__tool_directory__/../src/ana_movie_mp.py
           --movie '$movie'
 
-	  --channel $channel
+	      --channel $channel
 
-	  --gauss_sigma $gauss_sigma
+	      --gauss_sigma $gauss_sigma
 
           --dt $dt
           --Tmin $tmin
@@ -23,7 +23,8 @@
           --phase_out $phase_out
           --period_out $period_out
           --power_out $power_out
-	  
+	      
+          --ncpu "\${GALAXY_SLOTS:-8}"
 	  > $log
 
     ]]></command>
