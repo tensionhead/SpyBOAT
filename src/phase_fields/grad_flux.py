@@ -65,7 +65,7 @@ def mk_nested_C_flux(field_shape, k = 1):
 
 
 
-def calculate_flux(vx, vy, k = 1):
+def calculate_flux(vx, vy, k = 1, nested = True):
 
     '''
     Given a rectangular vector field, create the flux
@@ -74,16 +74,22 @@ def calculate_flux(vx, vy, k = 1):
     k: max. order of the nested curves
     '''
 
+    # choose flux matrix generating function
+    if nested:
+        mk_flux_mat = mk_nested_C_flux
+    else:
+        mk_flux_mat = mk_C_flux
+    
     Ny, Nx = vx.shape
 
     # C_x = Nx X Ny
-    C_x = mk_nested_C_flux( (Nx, Nx), k = k)
+    C_x = mk_flux_mat( (Nx, Nx), k = k)
 
     # x-direction
     fx = vx.dot(C_x)
     
     # y-direction
-    C_y = mk_nested_C_flux( (Ny, Ny), k = k)    
+    C_y = mk_flux_mat( (Ny, Ny), k = k)    
 
     fy = C_y.T.dot(vy)
 

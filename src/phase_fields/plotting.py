@@ -1,6 +1,7 @@
 import sys
 from os.path import expanduser
 import numpy as np
+from numpy import pi
 
 from numpy.ma import masked_array
 from scipy.stats import scoreatpercentile as score
@@ -46,7 +47,7 @@ def show_vfield(vx, vy, skip = 5, vlen_perc = None, color = 'k', width = 0.0015)
 
     # x,y ordering as opposed to y,x for arrays (and imshow)!!
     ppl.quiver(vc[1]*skip, vc[0]*skip, dx_flat, dy_flat, angles = 'xy',
-               color = 'k', width = width)
+               color = color, width = width)
 
     # cmap(norm(vec_len(dx_flat, dy_flat))))
 
@@ -64,10 +65,16 @@ def show_gradient( frame, skip = 5, vlen_perc = 99, title = None):
 
     fig, ax = ppl.subplots()
 
-    ax.imshow(frame, cmap = 'bwr')#, vmin = -pi, vmax = pi)
+    im = ax.imshow(frame, vmin = -pi, vmax = pi, cmap = 'bwr')#, vmin = -pi, vmax = pi)
 
-    show_vfield(vx, vy, skip = skip, vlen_perc = vlen_perc)
+    show_vfield(vx, vy, skip = skip, vlen_perc = vlen_perc, width = 0.0025)
 
+    cb = ppl.colorbar(im,ax = ax, shrink = 0.35, orientation = 'horizontal', pad = 0.02)
+    cb.set_ticks( [-pi, -pi/2, 0, pi/2, pi] )
+    cb.set_ticklabels( [r'$-\pi$', r'$-\pi/2$', 0, r'$\pi/2$', r'$\pi$'] )
+    cb.ax.tick_params(labelsize=8)
+
+    
     ax.set_title('frame {}'.format(title))
     ax.axis('off')
     fig.subplots_adjust(left = 0, right = 1, bottom = 0, top = 1)
@@ -76,22 +83,24 @@ def show_gradient( frame, skip = 5, vlen_perc = 99, title = None):
 
 
 
-def show_flux_grad(frame, k = 15, vlen_perc = 99, flux_perc = 98, skip = 10):
+def show_flux_grad(frame, k = 15, vlen_perc = 99,
+                   flux_perc = 98, skip = 10, show_masked = True):
 
-    pdx, pdy, mask = get_masked_gradient(frame, mask_value = frame[0,0])
+    pdx, pdy, mask = gf.get_masked_gradient(frame, mask_value = frame[0,0])
     # -grad phi
     vx, vy = -pdx, -pdy
 
-    fig, ax = ppl.subplots(num = 1)
-    ax.imshow(frame, cmap = 'bwr')
+    fig, ax = ppl.subplots(num = 1); fig.clf(); ax = fig.gca()
+    im = ax.imshow(frame, cmap = 'bwr', vmin = -pi, vmax = pi)
     show_vfield(vx, vy, skip = skip, vlen_perc = vlen_perc)
+    cb = ppl.colorbar(im,ax = ax, shrink = 0.7)
+    cb.set_ticks( [-pi, -pi/2, 0, pi/2, pi] )
+    cb.set_ticklabels( [r'$-\pi$', r'$-\pi/2$', 0, r'$\pi/2$', r'$\pi$'] )
     ax.axis('off')
 
     # # -- flux calculation --
 
-    C_flux = mk_nested_C_flux(vx.shape, k = k)
-    # C_flux = mk_C_flux(vx.shape, k = k) # old style with single curve
-    flux = calculate_flux(vx, vy, C_flux)
+    flux = gf.calculate_flux(vx, vy, k = k, nested = True)
     flux = masked_array(flux, mask = ~mask)
 
 
@@ -103,33 +112,45 @@ def show_flux_grad(frame, k = 15, vlen_perc = 99, flux_perc = 98, skip = 10):
 
     # cmap.set_under('0.73')
     # cmap.set_over('0.73')
-    im = ax2.imshow(flux, cmap = flux_cm, vmax = flux_range, vmin = -flux_range)
+
+    if show_masked:
+        im2 = ax2.imshow(flux_m, cmap = flux_cm, vmax = flux_range, vmin = -flux_range)
+    else:
+        im2 = ax2.imshow(flux, cmap = flux_cm, vmax = flux_range, vmin = -flux_range)
     ax2.axis('off')
     
-    ppl.colorbar(im,ax = ax2)
+    cb = ppl.colorbar(im2,ax = ax2, shrink = 0.7)
+    cb.set_ticks( cb.get_ticks()[::2] )
     # vector field on flux
-    show_vfield(vx, vy, skip = skip, vlen_perc = vlen_perc, color = 'k')
+    show_vfield(vx, vy, skip = skip, vlen_perc = vlen_perc, color = 'teal', width = 0.001)
 
-    return flux, mask
+    return flux_m
 
-def mk_flux_tifs(movie, k = 15, flux_range = 0.1, skip = 8):
+def mk_flux_tifs(movie, k = 15, flux_range = 0.1, skip = 8, show_masked = False):
     
     ppl.ioff()
     
     for i,frame in enumerate(movie):
         print('Plotting frame ',i)
-        pdx, pdy, mask = get_masked_gradient(frame, mask_value = frame[0,0])
+        pdx, pdy, mask = gf.get_masked_gradient(frame, mask_value = frame[0,0])
         # -grad phi
         vx, vy = -pdx, -pdy
         
-        C_flux = mk_nested_C_flux(vx.shape, k = k)
-        flux = calculate_flux(vx, vy, C_flux)
-        flux = masked_array(flux, mask = ~mask)
-
+        flux = gf.calculate_flux(vx, vy, k = k)
+        # flux = masked_array(flux, mask = ~mask)
+        flux_m = masked_array(flux, mask = (flux > flux_range) | (flux < -flux_range))
+        
         fig = ppl.figure(num = 134) ; fig.clear() ; ax = fig.gca()
-        im = ax.imshow(flux, cmap = 'RdGy_r', vmax = flux_range, vmin = -flux_range)
+        if show_masked:
+            im = ax.imshow(flux_m, cmap = flux_cm, vmax = flux_range, vmin = -flux_range)
+        else:
+            im = ax.imshow(flux, cmap = flux_cm, vmax = flux_range, vmin = -flux_range)
         # vector field on flux
-        show_vfield(vx, vy, skip = skip, vlen_perc = 98, color = 'k')
+        show_vfield(vx, vy, skip = skip, vlen_perc = 100, color = 'teal', width = 0.001)
+
+        cb = ppl.colorbar(im,ax = ax, shrink = 0.7)
+        cb.set_ticks( cb.get_ticks()[::2] )
+        
 
         ax.axis('off')
         fig.subplots_adjust(left = 0, right = 1, bottom = 0, top = 1)
@@ -143,15 +164,20 @@ def mk_gradient_tifs(movie, skip = 7):
     
     for i,frame in enumerate(movie):
         print('Plotting frame ',i)
-        pdx, pdy, mask = get_masked_gradient(frame, mask_value = frame[0,0])
+        pdx, pdy, mask = gf.get_masked_gradient(frame, mask_value = frame[0,0])
         # -grad phi
         vx, vy = -pdx, -pdy
         
         fig = ppl.figure(num = 134) ; fig.clear() ; ax = fig.gca()
-        ax.imshow(frame, cmap = 'bwr', vmin = -pi, vmax = pi)
+        im = ax.imshow(frame, cmap = 'bwr', vmin = -pi, vmax = pi)
+
+        cb = ppl.colorbar(im,ax = ax, shrink = 0.5)
+        cb.set_ticks( [-pi, -pi/2, 0, pi/2, pi] )
+        cb.set_ticklabels( [r'$-\pi$', r'$-\pi/2$', 0, r'$\pi/2$', r'$\pi$'] )
+        
         
         # vector field on flux
-        show_vfield(vx, vy, skip = skip, vlen_perc = 98, color = 'k')
+        show_vfield(vx, vy, skip = skip, vlen_perc = 98, color = 'k', width = 0.001)
 
         ax.axis('off')
         fig.subplots_adjust(left = 0, right = 1, bottom = 0, top = 1)
