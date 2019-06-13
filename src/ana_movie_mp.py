@@ -110,7 +110,7 @@ else:
 # -------Set (and sanitize) wavelet parameters--------------------------------------
 
 Nt = movie.shape[0]  # number of sample points, length of the input signal
-T_c = arguments.Tmax # sinc filter
+T_c = arguments.Tmax # sinc filter AND highest period to scan for
 dt = arguments.dt
 Tmin = arguments.Tmin
 
@@ -122,9 +122,10 @@ if arguments.Tmin < 2 * dt:
 if arguments.Tmax > dt * Nt: 
     print ('Warning: Very large periods chosen!')
     print('..setting Tmax to {:.2f}'.format( dt * Nt ))
+    T_c = dt * Nt
 
 
-periods = np.linspace(arguments.Tmin, arguments.Tmax, arguments.nT)
+periods = np.linspace(Tmin, T_c, arguments.nT)
 
 # -------------------------------------------------------------------------------
 # the function to be executed in parallel, Wavelet parameters are global!
