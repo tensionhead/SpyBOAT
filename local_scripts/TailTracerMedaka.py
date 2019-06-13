@@ -11,6 +11,7 @@ from skimage.measure import profile_line
 from scipy.ndimage import gaussian_filter
 from scipy.ndimage.morphology import binary_fill_holes, binary_dilation, binary_erosion
 from scipy.interpolate import splprep, splev, RectBivariateSpline
+from scipy.stats import scoreatpercentile as score
 import skan as sk # fancy skeleton analyzer module, see https://jni.github.io/skan/getting_started.html,
 #INSTALLING SKAN: execute this in command line, pip install git+https://github.com/jni/skan
 
@@ -32,10 +33,27 @@ tif_dir = path.expanduser('~/tif_dir/')
 # --- globals end ------------
 
 
-def mk_blurred_binary(frame, sigma, num_erode = 15, num_dilate = 5):
+def mk_blurred_binary(frame, sigma,
+                      num_erode = 15,
+                      num_dilate = 5,
+                      perc = 98):
+
+    '''
+    Set 0 < perc < 100 to do a percentile filtering before
+    thresholding, careful to not throw out too much!
+
+    Put perc = None, to disable that filter
+    '''
 
     blurred_frame = gaussian_filter(frame, sigma=sigma)  # gaussian_filter(input, sigma=4)
-    threshold = threshold_otsu(blurred_frame)
+
+    if perc:
+        perc_score = score(blurred_frame, perc)
+        perc_filtered = blurred_frame[blurred_frame < perc_score]
+        threshold = threshold_otsu(perc_filtered)
+    else:        
+        threshold = threshold_otsu(blurred_frame)
+        
     binary_frame = blurred_frame > threshold
 
     binary_frame_morph = binary_fill_holes(binary_frame)
@@ -132,8 +150,9 @@ def get_posterior_tangent(tck, nr_tangents = 10):
     return dx_norm, dy_norm
 
 
-def get_splines_tangents(frame, sigma = 5, num_erode = 15,
-                         num_dilate = 10, spline_smooth = 0.5):
+def get_splines_tangents(frame, sigma = GBsigma, num_erode = 15,
+                         num_dilate = 10, perc = 98,
+                         spline_smooth = 0.5):
 
     '''
     Input is raw movie frame, does: blurring -> binarization
@@ -141,11 +160,15 @@ def get_splines_tangents(frame, sigma = 5, num_erode = 15,
     -> spline curve fitting + tanget component averaging
 
     Output is spline midline coordinates and tangent components
+
+    This function is for monitoring only...
     '''
 
     blurred_frame, binary_frame_morph = mk_blurred_binary(frame, sigma,
                                                           num_erode=num_erode,
-                                                          num_dilate=num_dilate)
+                                                          num_dilate=num_dilate,
+                                                          perc = perc)
+    
     longest_branch_coords = get_raw_midline(binary_frame_morph)
         
     tck = fit_midline_spline(longest_branch_coords[::10],
@@ -163,8 +186,9 @@ def get_splines_tangents(frame, sigma = 5, num_erode = 15,
     return spl_x, spl_y, dx, dy, binary_frame_morph
     
 
-def get_extrap_midline(frame, num_erode = 15,
-                         num_dilate = 10, spline_smooth = 0.5):
+def get_extrap_midline(frame, num_erode = 20,
+                         num_dilate = 10, perc = 98,
+                       spline_smooth = 0.5):
 
 
     '''
@@ -184,7 +208,8 @@ def get_extrap_midline(frame, num_erode = 15,
     
     blurred_frame, binary_frame_morph = mk_blurred_binary(frame, sigma = GBsigma,
                                                           num_erode=num_erode,
-                                                          num_dilate=num_dilate)
+                                                          num_dilate=num_dilate,
+                                                          perc = perc)
     
     longest_branch_coords = get_raw_midline(binary_frame_morph)
         
@@ -293,6 +318,10 @@ def extract_profile(frame, coords):
 # --- Kymographs ------------------------------------------------
 
 def construct_Kymograph(movie, MxPAsteps = 150, sigma = GBsigma, **kwargs):
+
+    '''
+    **kwargs are for *get_etrap_midline* !
+    '''
 
     NFrames= movie.shape[0]
 
@@ -530,7 +559,7 @@ movie_dir = path.expanduser('~/ownCloud/Shared/TailTracerMedaka/')
 fnames = glob.glob(path.join(movie_dir, '*tif'))
 
 print(fnames)
-movie_path = path.join(movie_dir, fnames[1])
+movie_path = path.join(movie_dir, fnames[0])
 movie = imread(movie_path)
 print(f'Read in {movie_path}')
 
@@ -549,8 +578,12 @@ Plot_single_frame2(movie[25,...], num_erode = 17, num_dilate = 5)
 
 # make a kymo and plot it
 Kymo = construct_Kymograph(movie, MxPAsteps = 110, num_erode = 20, num_dilate = 12)
+
+# carefully blur Kymo with very narrow bandwidth
+KymoB = gaussian_filter(Kymo, 1)
+
 plt.figure()
-plt.imshow(Kymo[:,:], origin = 'lower', cmap = 'magma')
+plt.imshow(KymoB[:,:], origin = 'lower', cmap = 'magma')
 
 
 # uncomment (one only, otherwise tifs get overwritten)
