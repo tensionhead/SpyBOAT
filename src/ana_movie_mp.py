@@ -69,7 +69,6 @@ if len(movie.shape) == 4:
             F,C,X,Y = movie.shape # strange ordering                
             print('Input shape:', (F,X,Y,C), '[Frames, X, Y, Channels]')
             movie = movie[:,channel-1,:,:] # select a channel
-            # io.imsave('../test_data/2chan_movie.tif', movie, plugin="tifffile")
 
         # normal F,X,Y,C ordering
         else:
@@ -99,7 +98,7 @@ gsigma = arguments.gauss_sigma
 
 # check if pre-smoothing requested, a (non-sensical) value of 0 means no pre-smoothing
 if gsigma != 0:
-    print('Pre-smoothing the movie with Gaussians, sigma = {:.2f}'.format(arguments.gauss_sigma))
+    print(f'Pre-smoothing the movie with Gaussians, sigma = {arguments.gauss_sigma:.2f}')
 
     for frame in range(movie.shape[0]):
         movie[frame,...] = gaussian_filter(movie[frame,...], sigma = gsigma)
@@ -139,7 +138,7 @@ def process_array(movie):
     ydim, xdim = movie.shape[1:] # F, Y, X ordering
     
     Npixels = ydim * xdim
-    print(f'Computing the transforms for {Npixels} pixels')
+    print(f'Computing the transforms for {Npixels} pixels (each)')
     sys.stdout.flush()
 
     # loop over pixel coordinates
@@ -174,26 +173,17 @@ def process_array(movie):
 ncpu_avail = mp.cpu_count() # number of available processors
 ncpu_req = arguments.ncpu   # requested number of cpu's
 
-if ncpu_req < 1:
-    print(f"Error: Negative number ({ncpu_req}) of CPU's requested.. exiting!")
-    print(f"Error: Negative number ({ncpu_req}) of CPU's requested.. exiting!",file=sys.stderr)
-
-    sys.exit(1)
 
 print(f"{ncpu_avail} CPU's available")
 
 if ncpu_req > ncpu_avail:
     print(f"Warning: requested {ncpu_req} CPU's but only {ncpu_avail} available!")
     print(f"Setting number of requested CPU's to {ncpu_avail}..")
-    print('Multiprocessing enabled!')
     
     ncpu_req = ncpu_avail
 
-elif ncpu_req > 1:
-    print(f"Requested {ncpu_req} CPU's, multiprocessing enabled!")
+print(f"Starting {ncpu_req} process(es)..")
 
-else:
-    print(f"Requested only {ncpu_req} CPU, no multiprocessing!")
 
 # initialize pool
 pool = mp.Pool( ncpu_req )
