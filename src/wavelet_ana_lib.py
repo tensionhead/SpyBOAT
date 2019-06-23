@@ -98,8 +98,8 @@ def compute_spectrum(signal, dt, periods):
 
     Morlet = mk_Morlet(omega0)
     wlet = CWT(signal, Morlet, scales)  # complex wavelet transform
-    sig2 = np.var(signal)
-    modulus = np.abs(wlet) ** 2 / sig2  # normalize with variance of signal
+    sigma2 = np.var(signal)
+    modulus = np.abs(wlet) ** 2 / sigma2  # normalize with variance of signal
 
     return modulus, wlet
 
