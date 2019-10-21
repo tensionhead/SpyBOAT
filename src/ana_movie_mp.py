@@ -130,6 +130,15 @@ periods = np.linspace(Tmin, T_c, arguments.nT)
 # the function to be executed in parallel, Wavelet parameters are global!
 
 def process_array(movie):
+
+    '''
+    Wavelet-process a 3-dimensional array 
+    with shape (NFrames, ydim, xdim).
+
+    Parameters for Wavelet transform are global!
+    '''
+
+    
     # create output arrays
     period_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
     phase_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
@@ -149,8 +158,10 @@ def process_array(movie):
 
         for y in range(ydim):
 
-            if (ydim*x + y)%10000 == 0 and x*y != 0:
-                print(f"Processed {ydim*x + y} pixels..")
+            # show progress
+            if (ydim*x + y)%(int(Npixels/10)) == 0 and x != 0:
+                print(f"Processed {(ydim*x + y)/Npixels * 100 :.1f}%..")
+                sys.stdout.flush()
             
             input_vec = movie[:, y, x]  # the time_series at pixel (x,y)
             dsignal = sinc_smooth(input_vec, T_c, dt, detrend=True)
