@@ -159,7 +159,7 @@ def process_array(movie):
         for y in range(ydim):
 
             # show progress
-            if (ydim*x + y)%(int(Npixels/5)) == 0 and x != 0:
+            if (ydim*x + y)%(int(Npixels/10)) == 0 and x != 0:
                 print(f"Processed {(ydim*x + y)/Npixels * 100 :.1f}%..")
                 sys.stdout.flush()
             
