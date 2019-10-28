@@ -22,7 +22,9 @@ parser.add_argument('--movie', help="Movie location", required=True)
 parser.add_argument('--phase_out', help='Phase output file name', required=True)
 parser.add_argument('--period_out', help='Period output file name', required=True)
 parser.add_argument('--power_out', help='Power output file name', required=True)
-parser.add_argument('--channel', help='which channel of the hyperstack to process', required=False, type=int, default=1)
+parser.add_argument('--amplitude_out', help='Amplitude output file name', required=True)
+parser.add_argument('--channel', help='which channel of the hyperstack to process',
+                    required=False, type=int, default=1)
 
 # Multiprocessing
 
@@ -138,16 +140,16 @@ def process_array(movie):
     Parameters for Wavelet transform are global!
     '''
 
-    
-    # create output arrays
-    period_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
-    phase_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
-    power_movie = np.zeros(movie.shape, dtype=np.float32)  # initialize empty array for output
+    # create output arrays, needs 32bit for Fiji FloatProcessor :/
+    period_movie = np.zeros(movie.shape, dtype=np.float32)  
+    phase_movie = np.zeros(movie.shape, dtype=np.float32)  
+    power_movie = np.zeros(movie.shape, dtype=np.float32)  
+    amplitude_movie = np.zeros(movie.shape, dtype=np.float32)  
 
     ydim, xdim = movie.shape[1:] # F, Y, X ordering
     
     Npixels = ydim * xdim
-    print(f'Computing the transforms for {Npixels} pixels (each)')
+    print(f'Computing the transforms for {Npixels} pixels')
     sys.stdout.flush()
 
     # loop over pixel coordinates
@@ -172,12 +174,15 @@ def process_array(movie):
             ridge_periods = periods[ridge_y]
             powers = modulus[ridge_y, np.arange(Nt)]
             phases = np.angle(wlet[ridge_y, np.arange(Nt)])
-
+            amplitudes = power_to_amplitude(dsignal, ridge_periods,
+                                            powers, dt)
+            
             phase_movie[:, y, x] = phases
             period_movie[:, y, x] = ridge_periods
             power_movie[:, y, x] = powers
+            amplitude_movie[:, y, x] = amplitudes
 
-    return phase_movie, period_movie, power_movie
+    return phase_movie, period_movie, power_movie, amplitude_movie
 
 # ------ Set up Multiprocessing  --------------------------
 
@@ -209,6 +214,7 @@ res_movies = pool.map( process_array, [movie for movie in movie_split] )
 phase_movie = np.concatenate( [r[0] for r in res_movies], axis = 1 )
 period_movie = np.concatenate( [r[1] for r in res_movies], axis = 1 )
 power_movie = np.concatenate( [r[2] for r in res_movies], axis = 1 )
+amplitude_movie = np.concatenate( [r[3] for r in res_movies], axis = 1 )
 
 
 print('Done with all transformations')
@@ -226,3 +232,7 @@ print('Written', arguments.period_out)
 # save power movie
 io.imsave(arguments.power_out, power_movie, plugin="tifffile")
 print('Written', arguments.power_out)
+
+# save amplitude movie
+io.imsave(arguments.amplitude_out, amplitude_movie, plugin="tifffile")
+print('Written', arguments.amplitude_out)

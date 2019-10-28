@@ -14,7 +14,7 @@ channel=1
 gauss_sigma=0
 
 # number of processors
-ncpu=3
+ncpu=2
 
 # example command
-python3 $script_path --movie $movie_dir/$movie_name --phase_out $movie_dir/'phase_mp_'$movie_name --period_out $movie_dir/'period_mp_'$movie_name --power_out $movie_dir/'power_mp_'$movie_name --dt $dt --Tmin $Tmin --Tmax $Tmax --nT $nT --channel $channel --gauss_sigma $gauss_sigma --ncpu $ncpu
+python3 $script_path --movie $movie_dir/$movie_name --phase_out $movie_dir/'phase_mp_'$movie_name --period_out $movie_dir/'period_mp_'$movie_name --power_out $movie_dir/'power_mp_'$movie_name --amplitude_out $movie_dir/'amplitude_mp_'$movie_name --dt $dt --Tmin $Tmin --Tmax $Tmax --nT $nT --channel $channel --gauss_sigma $gauss_sigma --ncpu $ncpu

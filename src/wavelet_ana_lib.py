@@ -15,7 +15,7 @@ from numpy import cos, pi, sin, sqrt
 omega0 = 2 * pi
 
 
-def scales_from_periods(periods, sfreq, omega0):
+def scales_from_periods(periods, sfreq, omega0 = 2*pi):
     scales = (omega0 + sqrt(2 + omega0 ** 2)) * periods * sfreq / (4 * pi)  # conversion from periods to morlet scales
     return scales
 
@@ -49,6 +49,17 @@ def CWT(data, wavelet, scales):
         output[ind, :] = np.convolve(data, wavelet_data,
                                      mode='same')
     return output
+
+
+def power_to_amplitude(signal, periods, powers, dt):
+
+    # extract scales along the ridge
+    scales = scales_from_periods(periods, 1 / dt)
+
+    gamma = np.sqrt(scales) / pi ** -0.25
+    gamma = gamma / (np.std(signal) * np.sqrt(2))
+
+    return np.sqrt(powers) / gamma
 
 
 def compute_spectrum(signal, dt, periods):
