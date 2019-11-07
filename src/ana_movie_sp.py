@@ -8,6 +8,12 @@ matplotlib.use('Agg')
 from skimage import io
 from scipy.ndimage import gaussian_filter
 
+##################################################
+#
+# IS DEPRECATED.. 
+#
+##################################################
+
 
 # ----------Import Wavelet Routines----------------
 from wavelet_ana_lib import *
