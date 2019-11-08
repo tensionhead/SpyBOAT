@@ -37,7 +37,7 @@ parser.add_argument('--Tmin', help='Smallest period', required=True, type=float)
 parser.add_argument('--Tmax', help='Biggest period', required=True, type=float)
 parser.add_argument('--nT', help='Number of periods to scan for', required=True, type=int)
 
-parser.add_argument('--version', action='version', version='1.0.0')
+parser.add_argument('--version', action='version', version='1.1.0')
 
 arguments = parser.parse_args()
 
