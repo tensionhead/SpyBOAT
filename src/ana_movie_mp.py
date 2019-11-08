@@ -3,9 +3,6 @@ import argparse
 import sys
 import multiprocessing as mp
 
-import matplotlib
-matplotlib.use('Agg')
-
 from skimage import io
 from scipy.ndimage import gaussian_filter
 
