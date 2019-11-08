@@ -81,11 +81,13 @@
     <help><![CDATA[
     **What it does**
 
-    Wavelet transforms an image stack (T,X,Y) pixel by pixel. Removal of low-frequency trends is inbuild via sinc filtering. The three output movies generated (phase, period and power) have exactly the same dimensions (T,X,Y) as the input.
+    Wavelet transforms an image stack (T,X,Y) pixel by pixel. Removal of low-frequency trends is inbuild via sinc filtering. 
+    The four output movies generated (phase, period, amplitude and power) have exactly the same dimensions (T,X,Y) as the input.
 
     Pre-smoothing of the data with Gaussian kernels is supported and often recommendable. 
 
-    To limit the number of Wavelet transformations (computing time), trim away parts of the movie with no relevant data (e.g. outer dark edges).
+    To limit the number of Wavelet transformations (computing time), downscaling of the input movie resolution is recommended. 
+    Trimming away parts of the movie with no relevant data (e.g. outer dark edges) also speed up the processing.
 
     If multiple channels present, select the one containing the oscillatory signal. Multiple slices (z-stack) are not supported.
 
