@@ -1,4 +1,4 @@
-<tool id="WaveletMovies" name="WaveletMovies" version="1.0.0">
+<tool id="WaveletMovies" name="WaveletMovies" version="1.1.0">
     <requirements>
         <requirement type="package" version="3.7">python</requirement>
         <requirement type="package" version="0.14.0">scikit-image</requirement>
