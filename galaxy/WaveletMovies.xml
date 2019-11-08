@@ -4,7 +4,6 @@
         <requirement type="package" version="0.14.0">scikit-image</requirement>
         <requirement type="package" version="1.15.2">numpy</requirement>
         <requirement type="package" version="1.1.0">scipy</requirement>
-        <requirement type="package" version="3.0.0">matplotlib</requirement>
     </requirements>
     <version_command>python $__tool_directory__/../src/ana_movie_mp.py --version</version_command>
     <command detect_errors="exit_code"><![CDATA[
@@ -23,7 +22,7 @@
           --phase_out $phase_out
           --period_out $period_out
           --power_out $power_out
-	      
+          --amplitude_out $amplitude_out
           --ncpu "\${GALAXY_SLOTS:-8}"
 	  > $log
 
@@ -41,7 +40,7 @@
             <validator type="in_range" min="0" max="10"/>
         </param>
 
-	<param name="gauss_sigma" type="float" value="0" label="Sigma" help="Width of the Gaussian smoothing kernel, leave at 0 if no pre-smoothing desired.">
+	    <param name="gauss_sigma" type="float" value="0" label="Sigma" help="Width of the Gaussian smoothing kernel, leave at 0 if no pre-smoothing desired.">
             <validator type="in_range" min="0" max="9999999"/>
         </param>
 
@@ -67,15 +66,17 @@
         <data name="phase_out" format="tiff" label="phase ${movie.name}"/>
         <data name="period_out" format="tiff" label="period ${movie.name}"/>
         <data name="power_out" format="tiff" label="power ${movie.name}"/>
+        <data name="amplitude_out" format="tiff" label="amplitude ${movie.name}"/>
 	    <data name="log" format="txt" label="log ${movie.name}.txt"/>
     </outputs>
 
     <tests>
         <test>
-            <param name="movie" value="twosmall_hom_sines.tif" ftype="tiff"/>
+            <param name="movie" value="twosmall_sines.tif" ftype="tiff"/>
             <output name="phase_out" file="phase_out.tif" ftype="tiff" compare="sim_size"/>
             <output name="period_out" file="period_out.tif" ftype="tiff" compare="sim_size"/>
             <output name="power_out" file="power_out.tif" ftype="tiff" compare="sim_size"/>
+            <output name="amplitude_out" file="amplitude_out.tif" ftype="tiff" compare="sim_size"/>
         </test>
     </tests>
     <help><![CDATA[
@@ -84,7 +85,7 @@
     Wavelet transforms an image stack (T,X,Y) pixel by pixel. Removal of low-frequency trends is inbuild via sinc filtering. 
     The four output movies generated (phase, period, amplitude and power) have exactly the same dimensions (T,X,Y) as the input.
 
-    Pre-smoothing of the data with Gaussian kernels is supported and often recommendable. 
+    Pre-smoothing of the data with Gaussian kernels is supported and often recommendable.
 
     To limit the number of Wavelet transformations (computing time), downscaling of the input movie resolution is recommended. 
     Trimming away parts of the movie with no relevant data (e.g. outer dark edges) also speed up the processing.
