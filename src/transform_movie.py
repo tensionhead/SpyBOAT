@@ -1,16 +1,25 @@
 #!/usr/bin/env python
+
+## This is the central processing script.
+## Gets interfaced both by Galaxy and the
+## command line tool of SpyBOAT
+
 import argparse
 import sys
 import multiprocessing as mp
 
+# image processing modules
 from skimage import io
-from scipy.ndimage import gaussian_filter
+from skimage.transform import rescale
+from skimage.filters import gaussian
 
+# wavelet processing
+import pyboat as pb
 
 # ----------Import Wavelet Routines----------------
 from wavelet_ana_lib import *
 
-# -------------------------------------------------
+# ----------command line parameters ---------------
 
 parser = argparse.ArgumentParser(description='Process some arguments.')
 
@@ -23,18 +32,24 @@ parser.add_argument('--amplitude_out', help='Amplitude output file name', requir
 parser.add_argument('--channel', help='which channel of the hyperstack to process',
                     required=False, type=int, default=1)
 
-# Multiprocessing
+# (Optional) Multiprocessing
 
 parser.add_argument('--ncpu', help='Number of processors to use',
                     required=False, type=int, default=1)
 
-# Gaussian smoothing
+# Optional spatial downsampling
+parser.add_argument('--rescale', help='Rescale the image by a factor given in %, 100 means no rescaling', required=False, default = 100, type=int)
+
+
+# Optional Gaussian smoothing
 parser.add_argument('--gauss_sigma', help='Gaussian smoothing parameter, 0 means no smoothing', required=False, default = 0, type=float)
 
 # Wavelet Parameters
 parser.add_argument('--dt', help='Sampling interval', required=True, type=float)
 parser.add_argument('--Tmin', help='Smallest period', required=True, type=float)
 parser.add_argument('--Tmax', help='Biggest period', required=True, type=float)
+parser.add_argument('--Tcutoff', help='Sinc cut-off period', required=True, type=float)
+parser.add_argument('--L', help='Sliding window size for amplitude normalization, 0 means no normalization', required=False, type=float)
 parser.add_argument('--nT', help='Number of periods to scan for', required=True, type=int)
 
 parser.add_argument('--version', action='version', version='1.1.0')
@@ -53,11 +68,13 @@ except FileNotFoundError:
     sys.exit(1)
 
 
-# ---Hyperstack (F,X,Y,C) or normal image stack (F,X,Y)?-----------
-
+# Hyperstack (Frames,X,Y,Channels) or normal image stack (Frames,X,Y)?
+# The stack to analyze will have (Frames, X, Y) ordering after being
+# read in below (see also process_array(movie))
 
 channel = arguments.channel # the selected channel
 
+# 4D-Hyperstack
 if len(movie.shape) == 4:
 
     print('Hyperstack detected, channel {} selected'.format(channel))
@@ -65,7 +82,7 @@ if len(movie.shape) == 4:
     try:
         # if only two channels present, tifffile ordering sadly is F,C,X,Y
         if movie.shape[1] == 2:            
-            F,C,X,Y = movie.shape # strange ordering                
+            F,C,X,Y = movie.shape # special ordering
             print('Input shape:', (F,X,Y,C), '[Frames, X, Y, Channels]')
             movie = movie[:,channel-1,:,:] # select a channel
 
@@ -79,7 +96,8 @@ if len(movie.shape) == 4:
         print('Channel {} not found.. exiting!'.format(channel))
                 
         sys.exit(1)
-        
+
+# 3D-Stack
 elif len(movie.shape) == 3:
     print('Stack detected')
     print('Input shape:', movie.shape, '[Frames, X, Y]')
@@ -91,39 +109,66 @@ else:
 
     sys.exit(1)
 
-# --------Do (optional) pre-smoothing----------------------------------------------
+# -------- Do (optional) spatial downsampling ---------------------------    
+
+scale_factor = arguments.rescale
+
+if scale_factor > 100:
+    print('Requested upscaling, however only downsampling is supported (and meaningful)!')
+    print('..doing no rescaling')
+    
+elif scale_factor != 100:
+    print(f'Downsampling the movie to {scale_factor:d}% of its original size..')
+
+    # rescale 1st frame to inquire output shape
+    frame1 = rescale(movie[0,...], scale = scale_factor/100, preserve_range=True)
+    movie_rs = np.zeros( (movie.shape[0], *frame1.shape) )
+    
+    for frame in range(movie.shape[0]):
+        movie_rs[frame,...] = rescale(movie[frame,...], scale = scale_factor/100,
+                                      preserve_range=True)
+
+    # overwrite
+    movie = movie_rs
+else:
+    print('No downsampling requested')
+        
+# -------- Do (optional) pre-smoothing -------------------------
+# note that downsampling already is a smoothing operation..
 
 gsigma = arguments.gauss_sigma
 
 # check if pre-smoothing requested, a (non-sensical) value of 0 means no pre-smoothing
 if gsigma != 0:
-    print(f'Pre-smoothing the movie with Gaussians, sigma = {arguments.gauss_sigma:.2f}')
+    print(f'Pre-smoothing the movie with Gaussians, sigma = {arguments.gauss_sigma:.2f}..')
 
     for frame in range(movie.shape[0]):
-        movie[frame,...] = gaussian_filter(movie[frame,...], sigma = gsigma)
+        movie[frame,...] = gaussian(movie[frame,...], sigma = gsigma)
 else:
     print('No pre-smoothing requested')
+
 
     
 # -------Set (and sanitize) wavelet parameters--------------------------------------
 
 Nt = movie.shape[0]  # number of sample points, length of the input signal
-T_c = arguments.Tmax # sinc filter AND highest period to scan for
+T_c = arguments.Tcutoff
 dt = arguments.dt
 Tmin = arguments.Tmin
+Tmax = arguments.Tmax
+L = arguments.L # defaults to 0 which mean no normalization requested
 
-if arguments.Tmin < 2 * dt:
+if Tmin < 2 * dt:
     print('Warning, Nyquist limit is 2 times the sampling interval!')
     print('..setting Tmin to {:.2f}'.format( 2 * dt ))
     Tmin = 2 * dt
 
-if arguments.Tmax > dt * Nt: 
+if Tmax > dt * Nt: 
     print ('Warning: Very large periods chosen!')
     print('..setting Tmax to {:.2f}'.format( dt * Nt ))
-    T_c = dt * Nt
+    Tmax = dt * Nt
 
-
-periods = np.linspace(Tmin, T_c, arguments.nT)
+periods = np.linspace(Tmin, Tmax, arguments.nT)
 
 # -------------------------------------------------------------------------------
 # the function to be executed in parallel, Wavelet parameters are global!
@@ -134,7 +179,8 @@ def process_array(movie):
     Wavelet-process a 3-dimensional array 
     with shape (NFrames, ydim, xdim).
 
-    Parameters for Wavelet transform are global!
+    Parameters for Wavelet transform are global
+    (thanks to multiprocessing.Pool)!
     '''
 
     # create output arrays, needs 32bit for Fiji FloatProcessor :/
@@ -152,9 +198,6 @@ def process_array(movie):
     # loop over pixel coordinates
     for x in range(xdim):
 
-        # print("X = ", x)
-        # sys.stdout.flush()
-
         for y in range(ydim):
 
             # show progress
@@ -166,16 +209,24 @@ def process_array(movie):
                 print(f"Processed {(ydim*x + y)/Npixels * 100 :.1f}%..")
             
             input_vec = movie[:, y, x]  # the time_series at pixel (x,y)
-            dsignal = sinc_smooth(input_vec, T_c, dt, detrend=True)
+            
+            # detrending
+            trend = pb.sinc_smooth(input_vec, T_c, dt)
+            dsignal = input_vec - trend
+            
+            # amplitude normalization?
+            if L != 0:
+                dsignal = pb.normalize_with_envelope(dsignal, L, dt)
 
-            modulus, wlet = compute_spectrum(dsignal, dt, periods)
-            ridge_y = get_maxRidge(modulus)
+            sigma = np.std(dsignal)
+            modulus, wlet = pb.compute_spectrum(dsignal, dt, periods)
+            ridge_ys,_ = pb.get_maxRidge_ys(modulus)
 
-            ridge_periods = periods[ridge_y]
-            powers = modulus[ridge_y, np.arange(Nt)]
-            phases = np.angle(wlet[ridge_y, np.arange(Nt)])
-            amplitudes = power_to_amplitude(dsignal, ridge_periods,
-                                            powers, dt)
+            ridge_periods = periods[ridge_ys]
+            powers = modulus[ridge_ys, np.arange(Nt)]
+            phases = np.angle(wlet[ridge_ys, np.arange(Nt)])
+            amplitudes = pb.core.power_to_amplitude(ridge_periods,
+                                                    powers, sigma, dt)
             
             phase_movie[:, y, x] = phases
             period_movie[:, y, x] = ridge_periods
