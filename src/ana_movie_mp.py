@@ -3,9 +3,6 @@ import argparse
 import sys
 import multiprocessing as mp
 
-import matplotlib
-matplotlib.use('Agg')
-
 from skimage import io
 from scipy.ndimage import gaussian_filter
 
@@ -40,7 +37,7 @@ parser.add_argument('--Tmin', help='Smallest period', required=True, type=float)
 parser.add_argument('--Tmax', help='Biggest period', required=True, type=float)
 parser.add_argument('--nT', help='Number of periods to scan for', required=True, type=int)
 
-parser.add_argument('--version', action='version', version='1.0.0')
+parser.add_argument('--version', action='version', version='1.1.0')
 
 arguments = parser.parse_args()
 
@@ -161,9 +158,12 @@ def process_array(movie):
         for y in range(ydim):
 
             # show progress
-            if (ydim*x + y)%(int(Npixels/10)) == 0 and x != 0:
+            if Npixels < 10:
                 print(f"Processed {(ydim*x + y)/Npixels * 100 :.1f}%..")
                 sys.stdout.flush()
+
+            elif (ydim*x + y)%(int(Npixels/10)) == 0 and x != 0:
+                print(f"Processed {(ydim*x + y)/Npixels * 100 :.1f}%..")
             
             input_vec = movie[:, y, x]  # the time_series at pixel (x,y)
             dsignal = sinc_smooth(input_vec, T_c, dt, detrend=True)
