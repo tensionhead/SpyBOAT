@@ -23,15 +23,18 @@ import pyboat as pb
 def down_sample(movie, scale_factor):
 
     '''
-    Spatially downsamples a 3-dimensional input movie (NFrames, y, x). It basically
-    wraps around skimage.transform.rescale to properly work on image stacks (movies). 
+    Spatially downsamples a 3-dimensional input movie (NFrames, y, x). 
+    It basically wraps around skimage.transform.rescale 
+    to properly work on image stacks (movies). 
 
     Parameters
     ----------
 
-    movie : ndarray with ndim = 3, downsampling is done along the last two axis
-    scale_factor : float, must be 0 < scale_factor <= 1 as only downsampling is
-                   supported/meaningful here. Goes into *skimage.transform.rescale*
+    movie : ndarray with ndim = 3, downsampling is done along 
+                                   the last two axis
+    scale_factor : float, must be 0 < scale_factor <= 1 as 
+                          only downsampling is supported/meaningful 
+                          here. Goes into `skimage.transform.rescale`
 
     Returns
     -------
@@ -63,7 +66,8 @@ def gaussian_blur(movie, sigma):
     Parameters
     ----------
 
-    movie : ndarray with ndim = 3, smoothing is done along the last two axis
+    movie : ndarray with ndim = 3, smoothing is done along the 
+                                   last two axis
     sigma : float, standard deviation of the gaussian kernel.
 
     Returns
@@ -85,7 +89,7 @@ def gaussian_blur(movie, sigma):
 def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
 
     '''
-    Wavelet-transforms a 3-dimensional array 
+    Analyzes a 3-dimensional array 
     with shape (NFrames, ydim, xdim) along
     its 1st axis 'pixel-by-pixel'.
 
@@ -94,7 +98,7 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
 
     For high spatial resolution input this might take a very
     long time as ydim \times xdim transformations have to be calculated!
-    Parallel execution is recommended (see *run_parallel* below).
+    Parallel execution is recommended (see `run_parallel` below).
 
     Parameters
     ----------
@@ -103,10 +107,11 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
     dt    : float, sampling interval               
     Tmin : float, smallest period
     Tmax : float, largest period
-    nT  : int,  number of periods
-    T_c : float, sinc cut off period, set to None to disable sinc-detrending (not recommended)
-    L   : float, amplitude normalization sliding window size. Default is None which disables
-                 normalization.
+    nT  : int,  number of periods/transforms
+    T_c : float, sinc cut off period, set to None to disable 
+                 sinc-detrending (not recommended)
+    L   : float, amplitude normalization sliding window size. 
+                 Default is None which disables normalization.
 
     Returns
     -------
@@ -181,15 +186,15 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
 
 # ------ Set up Multiprocessing  --------------------------
 
-def run_parallel(movie, n_cpu, dt, Tmin, Tmax, nT, T_c, L = None):
+def run_parallel(movie, n_cpu, **wkwargs):
 
     '''
     Sets up parallel processing of a 3-dimensional input movie.
-    See *process_stack* above for more details. Splits the input into
+    See `transform_stack` above for more details. Splits the input into
     *n_cpu* slices which get transformed individually and then get
     stitched back together after all transforms are done. Speedup
     scales practically with *n_cpu*, e.g. 4 processes are 4 times
-    faster than just using *process_stack* directly.
+    faster than just using `transform_stack` directly.
 
     Returns four output movies with the same shape as the input.
 
@@ -200,21 +205,18 @@ def run_parallel(movie, n_cpu, dt, Tmin, Tmax, nT, T_c, L = None):
     n_cpu : int, number of requested processors. A check is done if more
                  are requested than available.
 
-    dt    : float, sampling interval               
-    Tmin : float, smallest period
-    Tmax : float, largest period
-    nT  : int,  number of periods
-    T_c : float, sinc cut off period, set to None to disable sinc-detrending (not recommended)
-    L   : float, amplitude normalization sliding window size. Default is None which disables
-                 normalization.
+    Other Parameters
+    ----------------
 
+    **wkwargs : parameters for `transform_stack`,
+               the wavelet analysis parameters
     Returns
     -------
     
     phase_movie : 32bit ndarray, holding the instantaneous phases
     period_movie : 32bit ndarray, holding the instantaneous periods 
     power_movie : 32bit ndarray, holding the wavelet powers 
-    amplitude_movie : 32bit ndarray, holding the instantaneous amplitudes 
+    amplitude_movie : 32bit ndarray, holding the instantaneous amplitude
 
     '''
 
@@ -237,6 +239,22 @@ def run_parallel(movie, n_cpu, dt, Tmin, Tmax, nT, T_c, L = None):
     # split input movie row-wise (axis 1, axis 0 is time!)
     movie_split = np.array_split(movie, n_cpu, axis = 1)
 
+    # starmap doesn't support **kwargs passing, we need to explicitly
+    # declare them
+
+    try:
+        dt = wkwargs['dt']
+        Tmin = wkwargs['Tmin']
+        Tmax = wkwargs['Tmax']
+        nT = wkwargs['nT']
+        T_c = wkwargs['T_c']
+        L = wkwargs['L']
+    except KeyError as e:
+        print("Wavelet analysis parameter(s) missing:", repr(e),
+              file=sys.stderr)
+        print("Exiting..", file=sys.stderr)
+        return
+    
     # start the processes, result is list of tuples (phase, period, power, amplitude)
     res_movies = pool.starmap( transform_stack, [(movie, dt, Tmin, Tmax, nT, T_c, L)
                                            for movie in movie_split] )

@@ -2,7 +2,7 @@
 
 Small pipeline to wavelet transform 3D-Stacks (X,Y,T) based on the analysis tools
 provided by [pyBOAT](https://github.com/tensionhead/pyBOAT). The supplied input
-movie gets wavelet transformed pixel by pixel along the time axis, yielding up to
+movie gets analyzed pixel by pixel along the time axis, yielding up to
 four output movies:
 
 - phase movie
@@ -10,7 +10,7 @@ four output movies:
 - amplitude movie
 - power movie
 
-This is the complete 2D-analogue to the results for univariate time-series data provided by pyBOAT.
+This is the complete 2D-analogue to the results for univariate time-series provided by pyBOAT.
 
 ## General Usage Tips 
 
