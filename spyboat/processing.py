@@ -48,11 +48,13 @@ def down_sample(movie, scale_factor):
         raise ValueError ('Upscaling is not supported!')
     
     # rescale only 1st frame to inquire output shape
-    frame1 = rescale(movie[0,...], scale = scale_factor, preserve_range=True)
+    frame1 = rescale(movie[0,...], scale = scale_factor,
+                     preserve_range=True)
     movie_ds = np.zeros( (movie.shape[0], *frame1.shape) )
     
     for frame in range(movie.shape[0]):
-        movie_ds[frame,...] = rescale(movie[frame,...], scale = scale_factor,
+        movie_ds[frame,...] = rescale(movie[frame,...],
+                                      scale = scale_factor,
                                       preserve_range=True)
 
     return movie_ds
@@ -115,11 +117,12 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
 
     Returns
     -------
-
-    phase_movie : 32bit ndarray, holding the instantaneous phases
-    period_movie : 32bit ndarray, holding the instantaneous periods 
-    power_movie : 32bit ndarray, holding the wavelet powers 
-    amplitude_movie : 32bit ndarray, holding the instantaneous amplitudes 
+    
+    results : dictionary, with keys holding the output movies
+          'phase' : 32bit ndarray, holding the instantaneous phases
+          'period' : 32bit ndarray, holding the instantaneous periods 
+          'power' : 32bit ndarray, holding the wavelet powers 
+          'amplitude' : 32bit ndarray, holding the instantaneous amplitudes 
 
     '''
 
@@ -169,7 +172,7 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
             Nt = len(signal)
             
             modulus, wlet = pb.compute_spectrum(signal, dt, periods)
-            ridge_ys,_ = pb.get_maxRidge_ys(modulus)
+            ridge_ys = pb.get_maxRidge_ys(modulus)
 
             ridge_periods = periods[ridge_ys]
             powers = modulus[ridge_ys, np.arange(Nt)]
@@ -182,7 +185,10 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
             power_movie[:, y, x] = powers
             amplitude_movie[:, y, x] = amplitudes
 
-    return phase_movie, period_movie, power_movie, amplitude_movie
+    results = {'phase' : phase_movie, 'period' : period_movie,
+               'power' : power_movie, 'amplitude' : amplitude_movie}
+    
+    return results
 
 # ------ Set up Multiprocessing  --------------------------
 
@@ -212,12 +218,11 @@ def run_parallel(movie, n_cpu, **wkwargs):
                the wavelet analysis parameters
     Returns
     -------
-    
-    phase_movie : 32bit ndarray, holding the instantaneous phases
-    period_movie : 32bit ndarray, holding the instantaneous periods 
-    power_movie : 32bit ndarray, holding the wavelet powers 
-    amplitude_movie : 32bit ndarray, holding the instantaneous amplitude
-
+    results : dictionary, with keys holding the output movies
+          'phase' : 32bit ndarray, holding the instantaneous phases
+          'period' : 32bit ndarray, holding the instantaneous periods 
+          'power' : 32bit ndarray, holding the wavelet powers 
+          'amplitude' : 32bit ndarray, holding the instantaneous amplitudes 
     '''
 
     ncpu_avail = mp.cpu_count() # number of available processors
@@ -240,8 +245,12 @@ def run_parallel(movie, n_cpu, **wkwargs):
     movie_split = np.array_split(movie, n_cpu, axis = 1)
 
     # starmap doesn't support **kwargs passing, we need to explicitly
-    # declare them
+    # declare the parameters :/
 
+    # default value..
+    if not 'L' in wkwargs:
+        wkwargs['L'] = None
+    
     try:
         dt = wkwargs['dt']
         Tmin = wkwargs['Tmin']
@@ -255,17 +264,23 @@ def run_parallel(movie, n_cpu, **wkwargs):
         print("Exiting..", file=sys.stderr)
         return
     
-    # start the processes, result is list of tuples (phase, period, power, amplitude)
-    res_movies = pool.starmap( transform_stack, [(movie, dt, Tmin, Tmax, nT, T_c, L)
-                                           for movie in movie_split] )
+    # start the processes, result is list
+    # of tuples (phase, period, power, amplitude)
+    res_movies = pool.starmap( transform_stack,
+                               [(movie, dt, Tmin, Tmax, nT, T_c, L)
+                                for movie in movie_split] )
 
+    results = {}
     # re-join the splitted output movies
-    phase_movie = np.concatenate( [r[0] for r in res_movies], axis = 1 )
-    period_movie = np.concatenate( [r[1] for r in res_movies], axis = 1 )
-    power_movie = np.concatenate( [r[2] for r in res_movies], axis = 1 )
-    amplitude_movie = np.concatenate( [r[3] for r in res_movies], axis = 1 )
+    results['phase'] = np.concatenate([r['phase'] for r in res_movies],
+                                       axis = 1 )
+    results['period'] = np.concatenate([r['period'] for r in res_movies],
+                                    axis = 1 )
+    results['power'] = np.concatenate( [r['power'] for r in res_movies],
+                                       axis = 1 )
+    results['amplitude'] = np.concatenate([r['amplitude'] for r in res_movies],
+                                          axis = 1 )
 
-    print('Done with all transformations')
-
-    return phase_movie, period_movie, power_movie, amplitude_movie
+    print('Done with all transformations')        
+    return results
 

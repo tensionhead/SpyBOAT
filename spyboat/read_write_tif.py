@@ -6,8 +6,6 @@ found e.g. in Fiji Hyperstacks
 '''
 
 from os import path
-
-# image processing modules
 from skimage import io
 
 def open_tif(fname, channel = 1):
@@ -108,7 +106,7 @@ def save_to_tifs(results, input_name, directory):
     Parameters
     ----------
 
-    results : tuple, holds the four output movies 
+    results : dictionary, holds the four output movies 
                      (phase, period, power and amplitude)
 
     input_name : str, the common name (of the experiment/sample..)
@@ -116,20 +114,20 @@ def save_to_tifs(results, input_name, directory):
     '''
     # save phase movie
     out_path = path.join(directory, f'phase_{input_name}.tif')
-    io.imsave(out_path, results[0], plugin="tifffile")
+    io.imsave(out_path, results['phase'], plugin="tifffile")
     print('Written', out_path)
 
     # save period movie
     out_path = path.join(directory, f'period_{input_name}.tif')
-    io.imsave(out_path, results[1], plugin="tifffile")
+    io.imsave(out_path, results['period'], plugin="tifffile")
     print('Written', out_path)
     
     # save power movie
     out_path = path.join(directory, f'power_{input_name}.tif')
-    io.imsave(out_path, results[2], plugin="tifffile")
+    io.imsave(out_path, results['power'], plugin="tifffile")
     print('Written', out_path)
 
     # save amplitude movie
     out_path = path.join(directory, f'amplitude_{input_name}.tif')
-    io.imsave(out_path, results[3], plugin="tifffile")
+    io.imsave(out_path, results['amplitude'], plugin="tifffile")
     print('Written', out_path)
