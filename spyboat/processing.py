@@ -152,7 +152,7 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
                 print(f"Processed {(ydim*x + y)/Npixels * 100 :.1f}%..")
                 sys.stdout.flush()
 
-            elif (ydim*x + y)%(int(Npixels/10)) == 0 and x != 0:
+            elif (ydim*x + y)%(int(Npixels/5)) == 0 and x != 0:
                 print(f"Processed {(ydim*x + y)/Npixels * 100 :.1f}%..")
             
             input_vec = movie[:, y, x]  # the time_series at pixel (x,y)
@@ -273,13 +273,13 @@ def run_parallel(movie, n_cpu, **wkwargs):
     results = {}
     # re-join the splitted output movies
     results['phase'] = np.concatenate([r['phase'] for r in res_movies],
-                                       axis = 1 )
+                                       axis=1)
     results['period'] = np.concatenate([r['period'] for r in res_movies],
-                                    axis = 1 )
+                                    axis=1)
     results['power'] = np.concatenate( [r['power'] for r in res_movies],
-                                       axis = 1 )
+                                       axis=1)
     results['amplitude'] = np.concatenate([r['amplitude'] for r in res_movies],
-                                          axis = 1 )
+                                          axis=1)
 
     print('Done with all transformations')        
     return results
