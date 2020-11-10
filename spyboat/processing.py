@@ -12,7 +12,7 @@ import multiprocessing as mp
 
 # image processing
 from skimage.transform import rescale
-from skimage.filters import gaussian
+from skimage.filters import gaussian, threshold_otsu
 
 # wavelet analysis
 import pyboat as pb
@@ -284,3 +284,89 @@ def run_parallel(movie, n_cpu, **wkwargs):
     print('Done with all transformations')        
     return results
 
+# --- Masking ---
+
+def create_fixed_mask(movie, frame, threshold):
+
+    '''
+    This is a convenience function to create 
+    a boolean mask from a single *frame* of an input
+    *movie* with a fixed *threshold*. It can then be
+    used to mask out non-oscillatory regions of the 
+    analysis results.
+
+    Visual inspection for choosing a suitable threshold 
+    value is recommended.
+
+    Parameters
+    ----------
+
+    movie : ndarray with ndim = 3, 1st axis is time
+    frame : integer, the frame number (0-based) of the image
+                     to create the mask from
+    threshold : float, minimal intensity of a pixel to be considered
+                       as foreground 
+
+    Returns
+    -------
+
+    mask : boolean array with ndim = 2, holds True for masked pixels
+    
+    '''
+
+    
+    img = movie[frame]
+
+    mask = img < threshold
+    
+    return mask
+
+def create_Otsu_mask(movie, frame):
+
+    '''
+    This is a convenience function to create 
+    a boolean mask from a single *frame* of an input
+    *movie* with a threshold derived by the Otsu method. 
+    The mask can then be used to mask out non-oscillatory 
+    regions of the analysis results.
+
+
+    Parameters
+    ----------
+
+    movie : ndarray with ndim = 3, 1st axis is time
+    frame : integer, the frame number (0-based) of the image
+                     to create the mask from
+
+    Returns
+    -------
+
+    mask : boolean array with ndim = 2, holds True for masked pixels
+    
+    '''
+
+    
+    img = movie[frame]
+
+    threshold = threshold_otsu(img)
+    mask = img < threshold
+    
+    return mask
+
+def apply_mask(movie, mask, fill_value = 0):
+
+    '''
+    Sets the masked pixels to *fill_value*
+    for every frame. This changes *movie* in place!
+
+    Parameters
+    ----------
+
+    movie : ndarray with ndim = 3, 1st axis is time
+    mask : boolean array with ndim = 2, holds True for masked pixels
+    fill_value : float, all masked pixels get set to this value
+    
+    '''
+
+    movie[:,mask] = fill_value
+    

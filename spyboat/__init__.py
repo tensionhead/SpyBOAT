@@ -1,4 +1,4 @@
-""" SpyBOAT - - Spatial pyBOAT """
+""" SpyBOAT - Spatial pyBOAT """
 
 
 __version__ = '0.0.1'
@@ -12,5 +12,6 @@ from .processing import down_sample, gaussian_blur
 # analysis
 from .processing import transform_stack, run_parallel
 
-# masking
-# ...
+# post-processing
+from .processing import create_fixed_mask, create_Otsu_mask, apply_mask
+
