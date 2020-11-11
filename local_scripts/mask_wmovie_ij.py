@@ -1,3 +1,14 @@
+###########################################################
+##      Fiji plugin for interactive masking ##
+# Usage: Open the movie to create the mask from
+# as well as the movies to be masked. They all must
+# have the same dimensions!
+# Either directly open this script with Fiji
+# or move to plugins folder.
+# Run the script, 1st menu lets you select the masking
+# options, 2nd menu applys the mask, one movie at a time.
+###########################################################
+
 from __future__ import with_statement,division
 import sys,os
 from os import walk,environ
