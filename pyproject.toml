@@ -10,7 +10,7 @@ home-page="https://github.com/tensionhead/SpyBOAT"
 requires=[
     "numpy >=1.18",
     "matplotlib >=3.1",
-    "skimage >= 0.16.2",
+    "scikit-image >=0.16.2",
     "pyboat >=0.8.22"
 ]
 classifiers=[
