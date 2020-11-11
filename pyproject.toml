@@ -11,7 +11,7 @@ requires=[
     "numpy >=1.18",
     "matplotlib >=3.1",
     "skimage >= 0.16.2",
-    "pyboat >=0.8.23"
+    "pyboat >=0.8.22"
 ]
 classifiers=[
 	    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
