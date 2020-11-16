@@ -1,6 +1,6 @@
-''' Provies I/O functions for Fiji compatibility,
- and pre- and postprocessing routines ''' 
+''' Provies I/O and pre- and postprocessing routines ''' 
 
+import sys
 from os import path
 import numpy as np
 from skimage import io
@@ -9,32 +9,22 @@ from skimage.filters import gaussian, threshold_otsu
 
 # --- I/O ---
 
-def open_tif(fname, channel = 1):
+def open_tif(fname):
 
     '''
-    Handles the quirks of multichannel tiffile formats 
-    found e.g. in Fiji Hyperstacks. The stack to analyze with SpyBOAT 
+    The stack to analyze with SpyBOAT 
     must have (Frames,Y,X) ordering, this is what this function 
-    tries to achieve.
+    tries to ensure.
 
-    Identifies if a 4D-Hyperstack (Frames,Y,X,Channels) or normal 
-    image 3D-stack (Frames,Y,X) was loaded, and picks the correct 
-    3D-stack in the former case based on the user
-    selected channel. 
+    Note that multi-channel (Fiji Hyperstacks) are not directly
+    supported. Extract the channel of interest first!
 
-    If only two channels are present, tifffile ordering surprisingly 
-    is (Frames,Channels,Y,X). You can see this by inspecting 
-    'spyboat.datasets.multichan2' and 'spyboat.datasets.multichan3',
-    which can be also found in the 'test_data' folder of this repository. 
-    In case the tiffile plugin corrects this, 
-    this function most likely becomes obsolete or even erroneous.
 
     Parameters
     ----------
 
     fname : string,
-            Path to the tif-stack
-    channel : int, the desired channel for the analysis, 1-based like Fiji
+            Path to the tif-stack to be opened
 
     Returns
     -------
@@ -44,34 +34,40 @@ def open_tif(fname, channel = 1):
 
     if not ('tif' in fname) | ('tiff' in fname):
         raise ValueError('Input file needs to be in tif/tiff format!')
-    
+
+    print(f'Opening {fname}..')
     tif_stack = io.imread(fname, plugin = "tifffile")
     
     # 4D-Hyperstack
-    if len(tif_stack.shape) == 4:
+    if len(tif_stack.shape) > 3:
 
-        print('Hyperstack detected, channel {} selected'.format(channel))
-
-        try:
-            # if only two channels present,
-            # tifffile ordering sadly is F,C,X,Y
-            if tif_stack.shape[1] == 2:            
-                F,C,X,Y = tif_stack.shape # special ordering
-                movie = tif_stack[:,channel-1,:,:] # select a channel
-                print('Input shape:', (F,X,Y,C), '[Frames, Y, C, Channels]')                
-            # normal F,X,Y,C ordering
-            else:
-                movie = tif_stack[:,:,:,channel-1] # select a channel
-                print('Input shape:', tif_stack.shape, '[Frames, Y, Y, Channels]')
+        print(f'Hyperstack detected with shape {tif_stack.shape}')
+        print(f'Hyperstacks are not supported, ndim of input stack must be 3!',
+              file = sys.stderr)
+        print('Exiting..', file = sys.stderr)
+        sys.exit(0)
+              
+        # with this you can handle the quirks of Fiji Hyperstacks
+        # try:
+        #     # if only two channels present,
+        #     # tifffile ordering sadly is F,C,X,Y
+        #     if tif_stack.shape[1] == 2:            
+        #         F,C,X,Y = tif_stack.shape # special ordering
+        #         movie = tif_stack[:,channel-1,:,:] # select a channel
+        #         print('Input shape:', (F,X,Y,C), '[Frames, Y, C, Channels]')                
+        #     # normal F,X,Y,C ordering
+        #     else:
+        #         movie = tif_stack[:,:,:,channel-1] # select a channel
+        #         print('Input shape:', tif_stack.shape, '[Frames, Y, Y, Channels]')
                 
 
-            return movie
+        #     return movie
 
-        except IndexError:
-            print('Channel {} not found.. exiting!'.format(channel), file=sys.stderr)
-            print('Channel {} not found.. exiting!'.format(channel))
+        # except IndexError:
+        #     print('Channel {} not found.. exiting!'.format(channel), file=sys.stderr)
+        #     print('Channel {} not found.. exiting!'.format(channel))
 
-            sys.exit(1)
+        #     sys.exit(1)
 
     # 3D-Stack
     elif len(tif_stack.shape) == 3:
@@ -86,7 +82,7 @@ def open_tif(fname, channel = 1):
         print('Movie has wrong number of dimensions, is it a single slice stack?!\nExiting..')
         print('Movie has wrong number of dimensions, is it a single slice stack?!\nExiting..', file=sys.stderr)
 
-        sys.exit(1)
+        sys.exit(0)
 
 # ---- Output -----------------------------------------------
 

@@ -13,4 +13,6 @@ from .util import create_fixed_mask, create_Otsu_mask, apply_mask
 # analysis
 from .processing import transform_stack, run_parallel
 
+# plotting
+from .plotting import phase_snapshot, period_snapshot
 

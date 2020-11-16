@@ -104,6 +104,8 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
             ridge_periods = periods[ridge_ys]
             powers = modulus[ridge_ys, np.arange(Nt)]
             phases = np.angle(wlet[ridge_ys, np.arange(Nt)])
+            # map to [0, 2pi]
+            phases = phases % (2 * np.pi)
             amplitudes = pb.core.power_to_amplitude(ridge_periods,
                                                     powers, sigma, dt)
             
@@ -157,7 +159,7 @@ def run_parallel(movie, n_cpu, **wkwargs):
     print(f"{ncpu_avail} CPU's available")
 
     if n_cpu > ncpu_avail:
-        print(f"Warning: requested {ncpu_req} CPU's but only {ncpu_avail} available!")
+        print(f"Warning: requested {n_cpu} CPU's but only {ncpu_avail} available!")
         print(f"Setting number of requested CPU's to {ncpu_avail}..")
 
         n_cpu = ncpu_avail
