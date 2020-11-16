@@ -15,7 +15,7 @@ import pyboat as pb
 
 # --- Spatial Wavelet Analysis ---
 
-def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
+def transform_stack(movie, dt, Tmin, Tmax, nT, T_c = None, L = None):
 
     '''
     Analyzes a 3-dimensional array 
@@ -37,8 +37,8 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
     Tmin : float, smallest period
     Tmax : float, largest period
     nT  : int,  number of periods/transforms
-    T_c : float, sinc cut off period, set to None to disable 
-                 sinc-detrending (not recommended)
+    T_c : float, sinc cut off period, defaults to None to disable 
+                 sinc-detrending (not recommended!)
     L   : float, amplitude normalization sliding window size. 
                  Default is None which disables normalization.
 
@@ -53,6 +53,16 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
 
     '''
 
+    if Tmin < 2 * dt:
+        print('Warning, Nyquist limit is 2 times the sampling interval!')
+        print('..setting Tmin to {:.2f}'.format( 2 * dt ))
+        Tmin = 2 * dt
+
+    if Tmax > dt * movie.shape[0]: 
+        print ('Warning: Very large periods chosen!')
+        print('..setting Tmax to {:.2f}'.format( dt * Nt ))
+        Tmax = dt * Nt
+    
     # the periods to scan for
     periods = np.linspace(Tmin, Tmax, nT)
     
@@ -121,7 +131,7 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c, L = None):
 
 # ------ Set up Multiprocessing  --------------------------
 
-def run_parallel(movie, n_cpu, **wkwargs):
+def run_parallel(movie, n_cpu, **Wkwargs):
 
     '''
     Sets up parallel processing of a 3-dimensional input movie.
@@ -143,7 +153,7 @@ def run_parallel(movie, n_cpu, **wkwargs):
     Other Parameters
     ----------------
 
-    **wkwargs : parameters for `transform_stack`,
+    **Wkwargs : parameters for `transform_stack`,
                the wavelet analysis parameters
     Returns
     -------
@@ -175,18 +185,20 @@ def run_parallel(movie, n_cpu, **wkwargs):
 
     # starmap doesn't support **kwargs passing, we need to explicitly
     # declare the parameters :/
+    # default to None..
+    if not 'L' in Wkwargs:
+        Wkwargs['L'] = None
 
-    # default value..
-    if not 'L' in wkwargs:
-        wkwargs['L'] = None
-    
+    if not 'T_c' in Wkwargs:
+        Wkwargs['T_c'] = None
+        
     try:
-        dt = wkwargs['dt']
-        Tmin = wkwargs['Tmin']
-        Tmax = wkwargs['Tmax']
-        nT = wkwargs['nT']
-        T_c = wkwargs['T_c']
-        L = wkwargs['L']
+        dt = Wkwargs['dt']
+        Tmin = Wkwargs['Tmin']
+        Tmax = Wkwargs['Tmax']
+        nT = Wkwargs['nT']
+        T_c = Wkwargs['T_c']
+        L = Wkwargs['L']
     except KeyError as e:
         print("Wavelet analysis parameter(s) missing:", repr(e),
               file=sys.stderr)

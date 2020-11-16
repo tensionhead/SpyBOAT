@@ -36,6 +36,7 @@ def open_tif(fname):
         raise ValueError('Input file needs to be in tif/tiff format!')
 
     print(f'Opening {fname}..')
+    
     tif_stack = io.imread(fname, plugin = "tifffile")
     
     # 4D-Hyperstack

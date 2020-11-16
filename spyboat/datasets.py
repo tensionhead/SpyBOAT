@@ -4,7 +4,7 @@ import os
 from skimage import io
 
 # go to test_data directory
-data_dir = os.path.join(os.path.dirname(__file__),'..','test_data')
+data_dir = os.path.join(os.path.dirname(__file__),'test_data')
 
 SCN_L20_Evans = io.imread( os.path.join(data_dir, 'SCN_L20_Evans.tif') )
 

@@ -9,15 +9,15 @@ from spyboat import datasets
 ## included test data
 ## note the stack ordering is [time, Y, X]
 
-test_movie = datasets.SCN_L20_Evans
-dt = 0.5 # sampling interval, it's half an hour here
+# test_movie = datasets.SCN_L20_Evans
+# dt = 0.5 # sampling interval, it's half an hour here
 
 ## uncomment to analyze very small synthetic movie
-# test_movie = datasets.two_sines
-# dt = 2 # sampling interval, it's 2 hours for two_sines
+test_movie = datasets.two_sines
+dt = 2 # sampling interval, it's 2 hours for two_sines
 
 ## analysis parameters
-wkwargs = {'dt' : dt, # sampling interval
+Wkwargs = {'dt' : dt, # sampling interval
            'Tmin' : 20, # lowest period to scan, in hours
            'Tmax' : 30, # highest period to scan, in hours          
            'nT' : 200,   # number of periods/transforms
@@ -39,9 +39,9 @@ n_cpu = 20
 
 # results is a dictionary with keys:
 # 'phase', 'period','power' and 'amplitude'
-results = spyboat.run_parallel(input_movie, n_cpu, **wkwargs)
+results = spyboat.run_parallel(input_movie, n_cpu, **Wkwargs)
 
-# mask all output movies
+# mask all output movies (in place!)
 for key in results:
     print(f'Masking {key}')
     spyboat.apply_mask(results[key], mask, fill_value = -1)
@@ -54,8 +54,8 @@ spyboat.phase_snapshot(results['phase'][frame,...])
 
 # look at a period snapshot
 spyboat.period_snapshot(results['period'][frame,...],
-                                 Tmin = wkwargs['Tmin'],
-                                 Tmax = wkwargs['Tmax'],
+                                 Tmin = Wkwargs['Tmin'],
+                                 Tmax = Wkwargs['Tmax'],
                                  time_unit = 'h')
 # input movie snapshot
 ppl.figure()
