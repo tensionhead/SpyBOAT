@@ -2,10 +2,14 @@
 
 import sys
 from os import path
+import logging
 import numpy as np
 from skimage import io
 from skimage.transform import rescale
 from skimage.filters import gaussian, threshold_otsu
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # --- I/O ---
 
@@ -35,18 +39,17 @@ def open_tif(fname):
     if not ('tif' in fname) | ('tiff' in fname):
         raise ValueError('Input file needs to be in tif/tiff format!')
 
-    print(f'Opening {fname}..')
+    logger.info(f'Opening {fname}')
     
     tif_stack = io.imread(fname, plugin = "tifffile")
     
     # 4D-Hyperstack
     if len(tif_stack.shape) > 3:
 
-        print(f'Hyperstack detected with shape {tif_stack.shape}')
-        print(f'Hyperstacks are not supported, ndim of input stack must be 3!',
-              file = sys.stderr)
-        print('Exiting..', file = sys.stderr)
-        sys.exit(0)
+        logger.critical(f'Hyperstack detected with shape {tif_stack.shape}')
+        logger.critical(f'Hyperstacks are not supported, ndim of input stack must be 3!')
+
+        sys.exit(1)
               
         # with this you can handle the quirks of Fiji Hyperstacks
         # try:
@@ -72,18 +75,16 @@ def open_tif(fname):
 
     # 3D-Stack
     elif len(tif_stack.shape) == 3:
-        print('Stack detected')
-        print(f'Input shape: {tif_stack.shape}, interpreted as [Frames, Y, X]')
+        logger.info('Stack detected')
+        logger.info(f'Input shape: {tif_stack.shape}, interpreted as [Frames, Y, X]')
 
         # return as is
         return tif_stack
 
     else:
-        print('Input shape:', tif_stack.shape, '[?]')
-        print('Movie has wrong number of dimensions, is it a single slice stack?!\nExiting..')
-        print('Movie has wrong number of dimensions, is it a single slice stack?!\nExiting..', file=sys.stderr)
-
-        sys.exit(0)
+        logger.critical('Input shape:', tif_stack.shape, '[?]')
+        logger.critical('Movie has wrong number of dimensions, is it a single slice stack?!')
+        sys.exit(1)
 
 # ---- Output -----------------------------------------------
 
@@ -112,22 +113,23 @@ def save_to_tifs(results, input_name, directory):
     # save phase movie
     out_path = path.join(directory, f'phase_{input_name}.tif')
     io.imsave(out_path, results['phase'], plugin="tifffile")
-    print('Written', out_path)
+    logger.info(f'Written {out_path}')
 
     # save period movie
     out_path = path.join(directory, f'period_{input_name}.tif')
     io.imsave(out_path, results['period'], plugin="tifffile")
-    print('Written', out_path)
+    logger.info(f'Written {out_path}')    
     
     # save power movie
     out_path = path.join(directory, f'power_{input_name}.tif')
     io.imsave(out_path, results['power'], plugin="tifffile")
-    print('Written', out_path)
+    logger.info(f'Written {out_path}')    
 
     # save amplitude movie
     out_path = path.join(directory, f'amplitude_{input_name}.tif')
     io.imsave(out_path, results['amplitude'], plugin="tifffile")
-    print('Written', out_path)
+    logger.info(f'Written {out_path}')    
+    
 
 # --- pre-processing ---
 

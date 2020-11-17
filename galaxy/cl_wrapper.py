@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 
 ## Gets interfaced by Galaxy or bash scripting
+import argparse
+import sys, os
+import logging
 
 import spyboat
 
-import argparse
-import sys, os
-
 from skimage import io
 from numpy import float32
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('wrapper')
+
 # ----------command line parameters ---------------
 
 parser = argparse.ArgumentParser(description='Process some arguments.')
@@ -57,8 +61,7 @@ arguments = parser.parse_args()
 try:
     movie = spyboat.open_tif(arguments.input_path)
 except FileNotFoundError:
-    print("Couldn't open {}, check movie storage directory!".format(arguments.input_path))
-    print("Couldn't open {}, check movie storage directory!".format(arguments.input_path), file=sys.stderr)
+    logger.critical("Couldn't open {}, check movie storage directory!".format(arguments.input_path))
 
     sys.exit(1)
 
@@ -68,10 +71,10 @@ except FileNotFoundError:
 scale_factor = arguments.rescale 
 
 if scale_factor == -1:
-    print('No downsampling requested..')
+    logger.info('No downsampling requested..')
 
 elif 0 < scale_factor < 100:
-    print(f'Downsampling the movie to {scale_factor:d}% of its original size..')
+    logger.info(f'Downsampling the movie to {scale_factor:d}% of its original size..')
     movie = spyboat.down_sample(movie, scale_factor / 100)
 else:
     raise ValueError('Scale factor must be between 0 and 100!')
@@ -81,9 +84,9 @@ else:
 
 # check if pre-smoothing requested, a (non-sensical) value of 0 means no pre-smoothing
 if arguments.gauss_sigma == -1:
-    print('No pre-smoothing requested')
+    logger.info('No pre-smoothing requested')
 else:
-    print(f'Pre-smoothing the movie with Gaussians, sigma = {arguments.gauss_sigma:.2f}..')
+    logger.info(f'Pre-smoothing the movie with Gaussians, sigma = {arguments.gauss_sigma:.2f}..')
 
     movie = spyboat.gaussian_blur(movie, arguments.gauss_sigma)    
     
@@ -93,10 +96,10 @@ else:
 
 mask = None
 if arguments.mask_frame != -1:
-    print(f'Creating mask from frame {arguments.mask_frame}')
+    logger.info(f'Creating mask from frame {arguments.mask_frame}')
     
     if (arguments.mask_frame > movie.shape[0]) or (arguments.mask_frame < 0):
-        print(f'Requested frame does not exist, input only has \
+        logger.critical(f'Requested frame does not exist, input only has \
         {movie.shape[0]} frames.. exiting', file = sys.stderr)
         sys.exit(0)
 
@@ -104,7 +107,7 @@ if arguments.mask_frame != -1:
         mask = spyboat.create_fixed_mask(movie, arguments.mask_frame,
                                   arguments.mask_thresh)
 else:
-    print('No masking requested..')
+    logger.info('No masking requested..')
     
 
 # ------ Retrieve  wavelet parameters ---------------------------
@@ -133,21 +136,21 @@ results = spyboat.run_parallel(movie, arguments.ncpu, **Wkwargs)
 if mask is not None:
     # mask all output movies (in place!)
     for key in results:
-        print(f'Masking {key}')
+        logger.info(f'Masking {key}')
         spyboat.apply_mask(results[key], mask, fill_value = -1)
 
 # save phase movie
 io.imsave(arguments.phase_out, results['phase'], plugin="tifffile")
-print('Written', arguments.phase_out)
+logger.info(f'Written {arguments.phase_out}')
 # save period movie
 io.imsave(arguments.period_out, results['period'], plugin="tifffile")
-print('Written', arguments.period_out)
+logger.info(f'Written {arguments.period_out}')
 # save power movie
 io.imsave(arguments.power_out, results['power'], plugin="tifffile")
-print('Written', arguments.power_out)
+logger.info(f'Written {arguments.power_out}')
 # save amplitude movie
 io.imsave(arguments.amplitude_out, results['amplitude'], plugin="tifffile")
-print('Written', arguments.amplitude_out)
+logger.info(f'Written {arguments.amplitude_out}')
 
 # save out the probably pre-processed (scaled and blurred) input movie for
 # direct comparison to results and coordinate mapping etc.
@@ -158,7 +161,7 @@ if arguments.save_input:
     dirname = os.path.dirname(arguments.input_path)
     out_path = os.path.join(dirname, input_name + '_preproc.tif')
     io.imsave(out_path, movie.astype(float32))
-    print('Written', out_path)
+    logger.info(f'Written {out_path}')
     
 
 

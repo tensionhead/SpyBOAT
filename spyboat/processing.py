@@ -9,9 +9,13 @@ is the computational core of the spyboat module
 import sys
 import numpy as np
 import multiprocessing as mp
+import logging
 
 # wavelet analysis
 import pyboat as pb
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # --- Spatial Wavelet Analysis ---
 
@@ -54,13 +58,13 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c = None, L = None):
     '''
 
     if Tmin < 2 * dt:
-        print('Warning, Nyquist limit is 2 times the sampling interval!')
-        print('..setting Tmin to {:.2f}'.format( 2 * dt ))
+        logger.warning('Warning, Nyquist limit is 2 times the sampling interval!')
+        logger.info('..setting Tmin to {:.2f}'.format( 2 * dt ))
         Tmin = 2 * dt
 
     if Tmax > dt * movie.shape[0]: 
-        print ('Warning: Very large periods chosen!')
-        print('..setting Tmax to {:.2f}'.format( dt * Nt ))
+        logger.warning('Warning: Very large periods chosen!')
+        logger.info('..setting Tmax to {:.2f}'.format( dt * Nt ))
         Tmax = dt * Nt
     
     # the periods to scan for
@@ -76,7 +80,7 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c = None, L = None):
     
     Npixels = ydim * xdim
     
-    print(f'Computing the transforms for {Npixels} pixels')
+    logger.info(f'Computing the transforms for {Npixels} pixels')
     sys.stdout.flush()
 
     # loop over pixel coordinates
@@ -86,11 +90,11 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c = None, L = None):
 
             # show progress
             if Npixels < 10:
-                print(f"Processed {(ydim*x + y)/Npixels * 100 :.1f}%..")
+                logger.info(f"Processed {(ydim*x + y)/Npixels * 100 :.1f}%..")
                 sys.stdout.flush()
 
             elif (ydim*x + y)%(int(Npixels/5)) == 0 and x != 0:
-                print(f"Processed {(ydim*x + y)/Npixels * 100 :.1f}%..")
+                logger.info(f"Processed {(ydim*x + y)/Npixels * 100 :.1f}%..")
             
             input_vec = movie[:, y, x]  # the time_series at pixel (x,y)
 
@@ -166,15 +170,15 @@ def run_parallel(movie, n_cpu, **Wkwargs):
 
     ncpu_avail = mp.cpu_count() # number of available processors
 
-    print(f"{ncpu_avail} CPU's available")
+    logger.info(f"{ncpu_avail} CPU's available")
 
     if n_cpu > ncpu_avail:
-        print(f"Warning: requested {n_cpu} CPU's but only {ncpu_avail} available!")
-        print(f"Setting number of requested CPU's to {ncpu_avail}..")
+        logger.warning(f"Warning: requested {n_cpu} CPU's but only {ncpu_avail} available!")
+        logger.info(f"Setting number of requested CPU's to {ncpu_avail}..")
 
         n_cpu = ncpu_avail
 
-    print(f"Starting {n_cpu} process(es)..")
+    logger.info(f"Starting {n_cpu} process(es)..")
 
 
     # initialize pool
@@ -200,10 +204,10 @@ def run_parallel(movie, n_cpu, **Wkwargs):
         T_c = Wkwargs['T_c']
         L = Wkwargs['L']
     except KeyError as e:
-        print("Wavelet analysis parameter(s) missing:", repr(e),
+        logger.critical("Wavelet analysis parameter(s) missing:", repr(e),
               file=sys.stderr)
-        print("Exiting..", file=sys.stderr)
-        return
+        logger.info("Exiting..", file=sys.stderr)
+        sys.exit(1)
     
     # start the processes, result is list
     # of tuples (phase, period, power, amplitude)
@@ -222,6 +226,6 @@ def run_parallel(movie, n_cpu, **Wkwargs):
     results['amplitude'] = np.concatenate([r['amplitude'] for r in res_movies],
                                           axis=1)
 
-    print('Done with all transformations')        
+    logger.info('Done with all transformations')        
     return results
 
