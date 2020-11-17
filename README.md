@@ -44,7 +44,7 @@ masking.
 
 ## Galaxy Web Server
 
-Soon..!
+*Soon..!*
 
 ### For Server Admins: Installing the tool
 
@@ -55,7 +55,7 @@ See the ```/galaxy``` folder.
 Install SpyBOAT via pip: 
 
 ```bash pip3 install spyboat```
-or conda:
+or conda (*soon..*):
 ```bash
 conda config --add channels conda-forge
 conda install spyboat
