@@ -8,7 +8,7 @@ def phase_snapshot(snapshot):
     cmap.set_under('gray')
     fig,ax = ppl.subplots()
     im = ax.imshow(snapshot,
-               cmap = 'bwr', vmin = 0, vmax = 6.2832)
+               cmap = cmap, vmin = 0, vmax = 6.2832)
     
     cb = ppl.colorbar(im, shrink = 0.9, ax = ax)
     cb.set_label('Phase [rad]')
@@ -16,7 +16,8 @@ def phase_snapshot(snapshot):
     # looks better, but you don't get the values by hovering over the plot
     # cb.set_ticklabels(['0', '$\pi/2$', '$\pi$', '$3/4 \pi$','$2\pi$'])    
     ax.axis('off')
-    
+    ax.set_title('Phase')
+    return ax
 
 def period_snapshot(snapshot, Tmin, Tmax, time_unit = 'h'):
 
@@ -25,9 +26,28 @@ def period_snapshot(snapshot, Tmin, Tmax, time_unit = 'h'):
     fig,ax = ppl.subplots()
     
     im = ax.imshow(snapshot,
-               cmap = 'magma_r',
-               vmin = Tmin, vmax = Tmax)
+                   cmap = cmap,
+                   vmin = Tmin, vmax = Tmax)
     
     cb = ppl.colorbar(im, shrink = 0.9, ax = ax)
     cb.set_label(f'Period [{time_unit}]')
     ax.axis('off')
+    ax.set_title('Period')    
+    return ax
+
+def amplitude_snapshot(snapshot, unit = 'a.u.'):
+
+    cmap = ppl.get_cmap('copper')
+    cmap.set_under('gray')
+    fig,ax = ppl.subplots()
+    
+    im = ax.imshow(snapshot, vmin = 0,
+                   cmap = cmap)
+
+    
+    cb = ppl.colorbar(im, shrink = 0.9, ax = ax)
+    cb.set_label(f'Amplitude [{unit}]')
+    ax.axis('off')
+    ax.set_title('Amplitude')    
+    return ax
+    

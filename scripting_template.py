@@ -3,18 +3,22 @@ from skimage import io
 import os
 
 import spyboat
+import spyboat.plotting as spyplot
 from spyboat import datasets
 
+LogLevel = 'INFO' # set to 'WARNING' to turn off info event logging
+spyboat.util.logger.setLevel(LogLevel)
+spyboat.processing.logger.setLevel(LogLevel)
 
 ## included test data
 ## note the stack ordering is [time, Y, X]
 
-# test_movie = datasets.SCN_L20_Evans
-# dt = 0.5 # sampling interval, it's half an hour here
+test_movie = datasets.SCN_L20_Evans
+dt = 0.5 # sampling interval, it's half an hour here
 
 ## uncomment to analyze very small synthetic movie
-test_movie = datasets.two_sines
-dt = 2 # sampling interval, it's 2 hours for two_sines
+#test_movie = datasets.two_sines
+#dt = 2 # sampling interval, it's 2 hours for two_sines
 
 ## analysis parameters
 Wkwargs = {'dt' : dt, # sampling interval
@@ -22,7 +26,7 @@ Wkwargs = {'dt' : dt, # sampling interval
            'Tmax' : 30, # highest period to scan, in hours          
            'nT' : 200,   # number of periods/transforms
            'T_c' : 40,  # sinc cut off period, in hours
-           'L' : None}   # Amplitude normalization sliding window size
+           'win_size' : None}   # Amplitude normalization sliding window size
 
 # down sample to 80% of original size
 ds_movie = spyboat.down_sample(test_movie, 0.8)
@@ -35,7 +39,7 @@ mask = spyboat.create_fixed_mask(input_movie, frame = 20, threshold = 10)
 
 
 # how many jobs
-n_cpu = 20
+n_cpu = 10
 
 # results is a dictionary with keys:
 # 'phase', 'period','power' and 'amplitude'
@@ -50,13 +54,17 @@ for key in results:
 frame = 54
 
 # look at a phase snapshot
-spyboat.phase_snapshot(results['phase'][frame,...])
+spyplot.phase_snapshot(results['phase'][frame,...])
 
 # look at a period snapshot
-spyboat.period_snapshot(results['period'][frame,...],
+spyplot.period_snapshot(results['period'][frame,...],
                                  Tmin = Wkwargs['Tmin'],
                                  Tmax = Wkwargs['Tmax'],
                                  time_unit = 'h')
+
+# look at an amplitude snapshot
+spyplot.amplitude_snapshot(results['amplitude'][frame,...])
+
 # input movie snapshot
 ppl.figure()
 ppl.imshow(input_movie[frame,...], aspect = 'auto')
@@ -71,4 +79,5 @@ spyboat.save_to_tifs(results, base_name, directory = os.getcwd())
 
 # save out the scaled and blurred input movie for
 # direct comparison to results and coordinate mapping etc.
-io.imsave(f'orig_{base_name}.tif', input_movie)
+out_path = os.path.join(os.getcwd(),f'{base_name}_preproc.tif')
+io.imsave(out_path, input_movie)

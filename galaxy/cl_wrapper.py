@@ -43,7 +43,7 @@ parser.add_argument('--Tmax', help='Biggest period', required=True, type=float)
 parser.add_argument('--nT', help='Number of periods to scan for', required=True, type=int)
 
 parser.add_argument('--Tcutoff', help='Sinc cut-off period, -1 means no detrending', required=False, type=float, default=-1)
-parser.add_argument('--L', help='Sliding window size for amplitude normalization, -1 means no normalization', required=False, type=float)
+parser.add_argument('--win_size', help='Sliding window size for amplitude normalization, -1 means no normalization', required=False, type=float)
 
 # Optional fixed masking
 parser.add_argument('--mask_frame', help='The frame of the input movie to create a mask from, -1 means no masking of the output', required=False, type=int,
@@ -123,10 +123,10 @@ if arguments.Tcutoff == -1:
 else:
     Wkwargs['T_c'] = arguments.Tcutoff
 
-if arguments.Tcutoff == -1:
-    Wkwargs['L'] = None
+if arguments.win_size == -1:
+    Wkwargs['win_size'] = None
 else:
-    Wkwargs['L'] = arguments.L
+    Wkwargs['win_size'] = arguments.win_size
 
 # start parallel processing
 results = spyboat.run_parallel(movie, arguments.ncpu, **Wkwargs)

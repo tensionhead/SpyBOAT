@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 # --- Spatial Wavelet Analysis ---
 
-def transform_stack(movie, dt, Tmin, Tmax, nT, T_c = None, L = None):
+def transform_stack(movie, dt, Tmin, Tmax, nT, T_c = None, win_size = None):
 
     '''
     Analyzes a 3-dimensional array 
@@ -43,7 +43,7 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c = None, L = None):
     nT  : int,  number of periods/transforms
     T_c : float, sinc cut off period, defaults to None to disable 
                  sinc-detrending (not recommended!)
-    L   : float, amplitude normalization sliding window size. 
+    win_size   : float, amplitude normalization sliding window size. 
                  Default is None which disables normalization.
 
     Returns
@@ -102,12 +102,12 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c = None, L = None):
             
             # detrending
             if T_c is not None:
-                trend = pb.sinc_smooth(input_vec, T_c, dt)
+                trend = pb.sinc_smooth(signal, T_c, dt)
                 signal = signal - trend
                 
             # amplitude normalization?
-            if L is not None:
-                signal = pb.normalize_with_envelope(signal, L, dt)
+            if win_size is not None:
+                signal = pb.normalize_with_envelope(signal, win_size, dt)
 
             sigma = np.std(signal)
             Nt = len(signal)
@@ -190,8 +190,8 @@ def run_parallel(movie, n_cpu, **Wkwargs):
     # starmap doesn't support **kwargs passing, we need to explicitly
     # declare the parameters :/
     # default to None..
-    if not 'L' in Wkwargs:
-        Wkwargs['L'] = None
+    if not 'win_size' in Wkwargs:
+        Wkwargs['win_size'] = None
 
     if not 'T_c' in Wkwargs:
         Wkwargs['T_c'] = None
@@ -202,7 +202,7 @@ def run_parallel(movie, n_cpu, **Wkwargs):
         Tmax = Wkwargs['Tmax']
         nT = Wkwargs['nT']
         T_c = Wkwargs['T_c']
-        L = Wkwargs['L']
+        win_size = Wkwargs['win_size']
     except KeyError as e:
         logger.critical("Wavelet analysis parameter(s) missing:", repr(e),
               file=sys.stderr)
@@ -212,7 +212,7 @@ def run_parallel(movie, n_cpu, **Wkwargs):
     # start the processes, result is list
     # of tuples (phase, period, power, amplitude)
     res_movies = pool.starmap( transform_stack,
-                               [(movie, dt, Tmin, Tmax, nT, T_c, L)
+                               [(movie, dt, Tmin, Tmax, nT, T_c, win_size)
                                 for movie in movie_split] )
 
     results = {}

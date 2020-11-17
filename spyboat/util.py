@@ -267,7 +267,7 @@ def create_Otsu_mask(movie, frame):
     
     return mask
 
-def apply_mask(movie, mask, fill_value = 0):
+def apply_mask(movie, mask, fill_value = -1):
 
     '''
     Sets the masked pixels to *fill_value*
