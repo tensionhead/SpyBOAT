@@ -13,12 +13,12 @@ spyboat.processing.logger.setLevel(LogLevel)
 ## included test data
 ## note the stack ordering is [time, Y, X]
 
-test_movie = datasets.SCN_L20_Evans
-dt = 0.5 # sampling interval, it's half an hour here
+#test_movie = datasets.SCN_Evans2013
+#dt = 0.5 # sampling interval, it's half an hour here
 
 ## uncomment to analyze very small synthetic movie
-#test_movie = datasets.two_sines
-#dt = 2 # sampling interval, it's 2 hours for two_sines
+test_movie = datasets.two_sines
+dt = 2 # sampling interval, it's 2 hours for two_sines
 
 ## analysis parameters
 Wkwargs = {'dt' : dt, # sampling interval

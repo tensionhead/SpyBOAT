@@ -6,7 +6,7 @@ from skimage import io
 # go to test_data directory
 data_dir = os.path.join(os.path.dirname(__file__),'test_data')
 
-SCN_L20_Evans = io.imread( os.path.join(data_dir, 'SCN_L20_Evans.tif') )
+# SCN_Evans2013 = io.imread( os.path.join(data_dir, 'SCN_L20_Evans2013.tif') )
 
 # Teststack [time, Y, X] ordering,
 # two rectanguar sinusoidal oscillatory domains, 

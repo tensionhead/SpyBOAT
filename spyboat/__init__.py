@@ -1,7 +1,7 @@
 """ SpyBOAT - Spatial pyBOAT """
 
 
-__version__ = '0.0.2'
+__version__ = '0.0.1'
 
 # io
 from .util import open_tif, save_to_tifs
@@ -13,6 +13,4 @@ from .util import create_fixed_mask, create_Otsu_mask, apply_mask
 # analysis
 from .processing import transform_stack, run_parallel
 
-# plotting
-# from .plotting import phase_snapshot, period_snapshot, amplitude_snapshot
 
