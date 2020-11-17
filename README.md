@@ -25,7 +25,6 @@ of the time-frequency analysis:
  
  before starting the computationally costly 2D stack transforms with SpyBOAT. 
 
-
 ### Spatial downscaling and smoothing
 
 Typically bio-image data aquired by tissue microscopy has much higher spatial resolution 
@@ -39,28 +38,30 @@ Often not everywhere in space an oscillatory signal can be found, hence masking 
 **after** the transformation is an important step. SpyBOAT provides some simple masking capabilities,
 but the user is welcome to work with the raw output and devise a masking strategy most suitable for her needs.
 
-## Command Line Interface
+This repository also provides a Fiji plugin in ```/local-scripts/mask_wmovie_ij.py```, which allows for interactive
+masking.
 
-To run locally: 
+## Galaxy Web Server
 
-1. create a conda environment:
-    
-    ``conda env create -f environment.yml``
-    
-2. Run the example from `src`:
+Soon..!
 
-    ```bash
-    cd src
-    bash run_local.sh
-    ```
+### For Server Admins: Installing the tool
+
+See the ```/galaxy``` folder.
+
+## Python scripting interface
+
+Install SpyBOAT via pip: 
+
+```bash pip3 install spyboat```
+or conda:
+```bash
+conda config --add channels conda-forge
+conda install spyboat
+```
+The ```scripting-template.py``` in the root of this repository
+showcases the analysis with the example ```spyboat.datasets```.
 
 
 
 
-
-
-## Available scripts:
-
-- example configuration in ```/src/slurm_bash_template.sh```, this runs both from the shell and via slurm
-- the script in ```/src/ana_movie.py``` accepts command line parameters managing I/O and the analysis parameters
-- actual algorithms are in ```/src/wavelet_ana_lib.py```
