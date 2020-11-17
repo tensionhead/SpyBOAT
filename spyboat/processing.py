@@ -12,7 +12,7 @@ import multiprocessing as mp
 import logging
 
 # wavelet analysis
-import pyboat as pb
+from pyboat import core as pbcore
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -102,25 +102,25 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c = None, win_size = None):
             
             # detrending
             if T_c is not None:
-                trend = pb.sinc_smooth(signal, T_c, dt)
+                trend = pbcore.sinc_smooth(signal, T_c, dt)
                 signal = signal - trend
                 
             # amplitude normalization?
             if win_size is not None:
-                signal = pb.normalize_with_envelope(signal, win_size, dt)
+                signal = pbcore.normalize_with_envelope(signal, win_size, dt)
 
             sigma = np.std(signal)
             Nt = len(signal)
             
-            modulus, wlet = pb.compute_spectrum(signal, dt, periods)
-            ridge_ys = pb.get_maxRidge_ys(modulus)
+            modulus, wlet = pbcore.compute_spectrum(signal, dt, periods)
+            ridge_ys = pbcore.get_maxRidge_ys(modulus)
 
             ridge_periods = periods[ridge_ys]
             powers = modulus[ridge_ys, np.arange(Nt)]
             phases = np.angle(wlet[ridge_ys, np.arange(Nt)])
             # map to [0, 2pi]
             phases = phases % (2 * np.pi)
-            amplitudes = pb.core.power_to_amplitude(ridge_periods,
+            amplitudes = pbcore.power_to_amplitude(ridge_periods,
                                                     powers, sigma, dt)
             
             phase_movie[:, y, x] = phases
