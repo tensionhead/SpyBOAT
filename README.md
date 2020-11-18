@@ -10,6 +10,12 @@ four output movies:
 - amplitude movie
 - power movie
 
+A snapshot of a typical output of the pipeline might look like this:
+
+<img src="./doc/SpyBOATexample.png" alt="drawing" width="1350"/>
+
+From left to right: Intensity, the input; Phasefield; Periods and Amplitude 
+
 This is the complete 2D-analogue to the results for univariate time-series provided by pyBOAT.
 
 ## General Usage Tips 
@@ -26,12 +32,6 @@ of the time-frequency analysis:
  - sampling interval 
  
  before starting the computationally costly 2D stack transforms with SpyBOAT. 
-
-A snapshot of a typical output of the pipeline might look like this:
-
-<img src="./doc/SpyBOATexample.png" alt="drawing" width="1350"/>
-
-From left to right: Intensity, the input; Phasefield; Periods and Amplitude 
 
 
 ### Spatial downscaling and smoothing
