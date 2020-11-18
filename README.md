@@ -27,8 +27,10 @@ of the time-frequency analysis:
  
  before starting the computationally costly 2D stack transforms with SpyBOAT. 
 
+A snapshot of a typical output of the pipeline might look like this:
 <img src="./doc/SpyBOATexample.png" alt="drawing" width="400"/>
 
+From left to right: Intensity, the input; Phasefield; Periods and Amplitude 
 
 
 ### Spatial downscaling and smoothing
