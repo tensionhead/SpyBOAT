@@ -205,11 +205,12 @@ def create_fixed_mask(movie, frame, threshold):
     '''
     This is a convenience function to create 
     a boolean mask from a single *frame* of an input
-    *movie* with a fixed *threshold*. It can then be
+    *movie* with a either a manual *threshold* or automatic
+    (Otsu) thresholding. It can then be
     used to mask out non-oscillatory regions of the 
     analysis results.
 
-    Visual inspection for choosing a suitable threshold 
+    Visual inspection for choosing a suitable manual threshold 
     value is recommended.
 
     Parameters
@@ -218,8 +219,10 @@ def create_fixed_mask(movie, frame, threshold):
     movie : ndarray with ndim = 3, 1st axis is time
     frame : integer, the frame number (0-based) of the image
                      to create the mask from
-    threshold : float, minimal intensity of a pixel to be considered
-                       as foreground 
+    threshold : float or str, 
+                minimal intensity of a pixel to be considered
+                as foreground . If set to 'Otsu' uses automatic Otsu
+                thresholding.
 
     Returns
     -------
@@ -231,41 +234,65 @@ def create_fixed_mask(movie, frame, threshold):
     
     img = movie[frame]
 
+    if threshold == 'Otsu':    
+        threshold = threshold_otsu(img)
+    elif np.isreal(threshold):
+        # take the supplied value
+        pass
+    else:
+        raise ValueError("Masking threshold must be either a float or 'Otsu'")
+    
     mask = img < threshold
     
     return mask
 
-def create_Otsu_mask(movie, frame):
+def create_dynamic_mask(movie, threshold):
 
     '''
-    This is a convenience function to create 
-    a boolean mask from a single *frame* of an input
-    *movie* with a threshold derived by the Otsu method. 
-    The mask can then be used to mask out non-oscillatory 
-    regions of the analysis results.
+    Creates a boolean mask for every frame of an input
+    *movie* with a manual *threshold* or automatic
+    (Otsu) thresholding. It can then be
+    used to mask out non-oscillatory regions of the 
+    analysis results, frame by frame.
 
+    Visual inspection for choosing a suitable threshold 
+    value is recommended.
 
     Parameters
     ----------
 
     movie : ndarray with ndim = 3, 1st axis is time
-    frame : integer, the frame number (0-based) of the image
-                     to create the mask from
+    threshold : float or str, 
+                minimal intensity of a pixel to be considered
+                as foreground . If 'Otsu' uses automatic Otsu
+                thresholding, for each frame individually.
 
     Returns
     -------
 
-    mask : boolean array with ndim = 2, holds True for masked pixels
+    mask : boolean array with ndim = 3, holds True for masked pixels
     
     '''
 
-    
-    img = movie[frame]
+    mask = np.zeros(movie.shape, dtype = bool)
 
-    threshold = threshold_otsu(img)
-    mask = img < threshold
+    for frame, img in enumerate(movie):
+        img = movie[frame]
+
+        if threshold == 'Otsu':    
+            threshold = threshold_otsu(img)
+        elif np.isreal(threshold):
+            # take the supplied value
+            pass
+        else:
+            raise ValueError("Masking threshold must be either a float or 'Otsu'")
+    
+
+        mask[frame] = img < threshold
     
     return mask
+
+
 
 def apply_mask(movie, mask, fill_value = -1):
 
@@ -277,10 +304,20 @@ def apply_mask(movie, mask, fill_value = -1):
     ----------
 
     movie : ndarray with ndim = 3, 1st axis is time
-    mask : boolean array with ndim = 2, holds True for masked pixels
+    mask : boolean array, holds True for masked pixels
+           can both be of ndim=2 for fixed, and ndim=3
+           for dynamic masks
     fill_value : float, all masked pixels get set to this value
     
     '''
 
-    movie[:,mask] = fill_value
+
+    # dynamic 3d mask, different for every frame
+    if mask.shape == movie.shape:
+        movie[mask] = fill_value
+    # fixed 2d mask
+    elif mask.shape == movie.shape[1:]:
+        movie[:,mask] = fill_value
+    else:
+        raise ValueError(f"Shape of movie {movie.shape} and mask {mask.shape} incompatible!")
     

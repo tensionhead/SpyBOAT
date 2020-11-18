@@ -13,8 +13,8 @@ spyboat.processing.logger.setLevel(LogLevel)
 ## included test data
 ## note the stack ordering is [time, Y, X]
 
-#test_movie = datasets.SCN_Evans2013
-#dt = 0.5 # sampling interval, it's half an hour here
+# test_movie = datasets.SCN_Evans2013
+# dt = 0.5 # sampling interval, it's half an hour here
 
 ## uncomment to analyze very small synthetic movie
 test_movie = datasets.two_sines
@@ -34,8 +34,10 @@ ds_movie = spyboat.down_sample(test_movie, 0.8)
 # gaussian blur
 input_movie = spyboat.gaussian_blur(ds_movie, sigma = 2.5)
 
-# create a mask from frame 20
-mask = spyboat.create_fixed_mask(input_movie, frame = 20, threshold = 10)
+# create a fixed mask from frame 20
+mask2d = spyboat.create_fixed_mask(input_movie, frame = 20, threshold = 10)
+# create a dynamic mask 
+mask3d = spyboat.create_dynamic_mask(input_movie, threshold = 10)
 
 
 # how many jobs
@@ -48,7 +50,7 @@ results = spyboat.run_parallel(input_movie, n_cpu, **Wkwargs)
 # mask all output movies (in place!)
 for key in results:
     print(f'Masking {key}')
-    spyboat.apply_mask(results[key], mask, fill_value = -1)
+    spyboat.apply_mask(results[key], mask3d, fill_value = -1)
 
 # snapshots at frame..
 frame = 54
@@ -72,7 +74,7 @@ cb = ppl.colorbar(shrink = 0.9)
 cb.set_label('Intensity [a.u.]')
 ppl.axis('off')
 
-base_name = 'SCN_L20_Evans'
+base_name = 'example_movie'
 
 # save out results to current working directory
 spyboat.save_to_tifs(results, base_name, directory = os.getcwd())
