@@ -29,7 +29,7 @@ of the time-frequency analysis:
 
 A snapshot of a typical output of the pipeline might look like this:
 
-<img src="./doc/SpyBOATexample.png" alt="drawing" width="400"/>
+<img src="./doc/SpyBOATexample.png" alt="drawing" width="1350"/>
 
 From left to right: Intensity, the input; Phasefield; Periods and Amplitude 
 
