@@ -15,7 +15,8 @@ This is the complete 2D-analogue to the results for univariate time-series provi
 ## General Usage Tips 
 
 For new users and/or exploratory data analysis it is advisable to first analyse at least a 
-few 1D time-series (e.g. ROI tracks) with [pyBOAT](https://github.com/tensionhead/pyBOAT). 
+few 1D time-series (e.g. ROI tracks) with [pyBOAT](https://github.com/tensionhead/pyBOAT), which
+gets automatically installed along SpyBOAT.
 This allows to sanity check the key parameters
 of the time-frequency analysis:
 
@@ -46,7 +47,7 @@ masking.
 
 *Soon..!*
 
-### For Server Admins: Installing the tool
+### For Server Admins: Installing SpyBOAT as a Galaxy Tool
 
 See the ```/galaxy``` folder.
 
