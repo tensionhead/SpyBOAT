@@ -32,7 +32,7 @@ parser.add_argument('--ncpu', help='Number of processors to use',
                     required=False, type=int, default=1)
 
 # Optional spatial downsampling
-parser.add_argument('--rescale', help='Rescale the image by a factor given in %%, 100 means no rescaling', required=False, default = -1, type=int)
+parser.add_argument('--rescale', help='Rescale the image by a factor given in %%, -1 means no rescaling', required=False, default = -1, type=int)
 # Optional Gaussian smoothing
 parser.add_argument('--gauss_sigma', help='Gaussian smoothing parameter, 0 means no smoothing', required=False, default=-1, type=float)
 
@@ -117,7 +117,7 @@ Wkwargs = {'dt' : arguments.dt,
            'Tmax' : arguments.Tmax,
            'nT' : arguments.nT}
 
-# the switches
+# the switches, maybe pass Nones directly?!
 if arguments.Tcutoff == -1:
     Wkwargs['T_c'] = None
 else:
