@@ -27,6 +27,10 @@ of the time-frequency analysis:
  
  before starting the computationally costly 2D stack transforms with SpyBOAT. 
 
+<img src="./doc/SpyBOATexample.png" alt="drawing" width="400"/>
+
+
+
 ### Spatial downscaling and smoothing
 
 Typically bio-image data aquired by tissue microscopy has much higher spatial resolution 
