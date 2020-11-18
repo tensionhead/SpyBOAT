@@ -14,7 +14,7 @@ A snapshot of a typical output of the pipeline might look like this:
 
 <img src="./doc/SpyBOATexample.png" alt="drawing" width="1350"/>
 
-From left to right: Intensity, the input; Phasefield; Periods and Amplitude 
+From left to right: Intensity of the blurred and down-sampled input; Phasefield; Periods and Amplitude 
 
 This is the complete 2D-analogue to the results for univariate time-series provided by pyBOAT.
 
