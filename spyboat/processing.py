@@ -204,9 +204,7 @@ def run_parallel(movie, n_cpu, **Wkwargs):
         T_c = Wkwargs['T_c']
         win_size = Wkwargs['win_size']
     except KeyError as e:
-        logger.critical("Wavelet analysis parameter(s) missing:", repr(e),
-              file=sys.stderr)
-        logger.info("Exiting..", file=sys.stderr)
+        logger.critical(f"Wavelet analysis parameter is missing: {repr(e)}, exiting..")
         sys.exit(1)
     
     # start the processes, result is list

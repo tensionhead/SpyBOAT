@@ -10,7 +10,8 @@ import spyboat
 from skimage import io
 from numpy import float32
 
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 logger = logging.getLogger('wrapper')
 
 # ----------command line parameters ---------------
@@ -32,11 +33,10 @@ parser.add_argument('--ncpu', help='Number of processors to use',
                     required=False, type=int, default=1)
 
 # Optional spatial downsampling
-parser.add_argument('--rescale', help='Rescale the image by a factor given in %%, -1 means no rescaling',
-                    required=False, default=-1, type=int)
+parser.add_argument('--rescale', help='Rescale the image by a factor given in %%, None means no rescaling',
+                    required=False, type=int)
 # Optional Gaussian smoothing
-parser.add_argument('--gauss_sigma', help='Gaussian smoothing parameter, 0 means no smoothing', required=False,
-                    default=-1, type=float)
+parser.add_argument('--gauss_sigma', help='Gaussian smoothing parameter, None means no smoothing', required=False, type=float)
 
 # Wavelet Analysis Parameters
 parser.add_argument('--dt', help='Sampling interval', required=True, type=float)
@@ -44,30 +44,35 @@ parser.add_argument('--Tmin', help='Smallest period', required=True, type=float)
 parser.add_argument('--Tmax', help='Biggest period', required=True, type=float)
 parser.add_argument('--nT', help='Number of periods to scan for', required=True, type=int)
 
-parser.add_argument('--Tcutoff', help='Sinc cut-off period, -1 means no detrending', required=False, type=float,
-                    default=-1)
-parser.add_argument('--win_size', help='Sliding window size for amplitude normalization, -1 means no normalization',
+parser.add_argument('--Tcutoff', help='Sinc cut-off period, disables detrending if not set', required=False, type=float)
+parser.add_argument('--win_size', help='Sliding window size for amplitude normalization, None means no normalization',
                     required=False, type=float)
 
-# Optional fixed masking
+# Optional masking
+parser.add_argument('--masking', help="Set to either 'dynamic', 'fixed' or 'None' which is the default", default='None', required=False, type=str)
+
 parser.add_argument('--mask_frame',
-                    help='The frame of the input movie to create a mask from, -1 means no masking of the output',
-                    required=False, type=int,
-                    default=-1)
+                    help="The frame of the input movie to create a fixed mask from, needs masking set to 'fixed'",
+                    required=False, type=int)
+
 
 parser.add_argument('--mask_thresh', help='The threshold of the mask, all pixels with less than this value get masked',
-                    required=False, type=int,
+                    required=False, type=float,
                     default=0)
 
 parser.add_argument('--version', action='version', version='0.0.1')
 
 arguments = parser.parse_args()
 
+logger.info("Received following arguments:")
+for arg in vars(arguments):
+    logger.info(f'{arg} -> {getattr(arguments, arg)}')
+
 # ------------Read the input----------------------------------------
 try:
     movie = spyboat.open_tif(arguments.input_path)
 except FileNotFoundError:
-    logger.critical("Couldn't open {}, check movie storage directory!".format(arguments.input_path))
+    logger.critical(f"Couldn't open {arguments.input_path}, check movie storage directory!")
 
     sys.exit(1)
 
@@ -75,7 +80,8 @@ except FileNotFoundError:
 
 scale_factor = arguments.rescale
 
-if scale_factor == -1:
+# defaults to None
+if not scale_factor:
     logger.info('No downsampling requested..')
 
 elif 0 < scale_factor < 100:
@@ -87,8 +93,8 @@ else:
 # -------- Do (optional) pre-smoothing -------------------------
 # note that downsampling already is a smoothing operation..
 
-# check if pre-smoothing requested, a (non-sensical) value of 0 means no pre-smoothing
-if arguments.gauss_sigma == -1:
+# check if pre-smoothing requested
+if not arguments.gauss_sigma:
     logger.info('No pre-smoothing requested')
 else:
     logger.info(f'Pre-smoothing the movie with Gaussians, sigma = {arguments.gauss_sigma:.2f}..')
@@ -98,17 +104,23 @@ else:
 # ----- Set up Masking before processing ----
 
 mask = None
-if arguments.mask_frame != -1:
-    logger.info(f'Creating mask from frame {arguments.mask_frame}')
+if arguments.masking == 'fixed':
+    if not arguments.mask_frame:
+        logger.critical("Frame number for fixed masking is missing!")
+        sys.exit(1)
+    logger.info(f'Creating fixed mask from frame {arguments.mask_frame}')
 
     if (arguments.mask_frame > movie.shape[0]) or (arguments.mask_frame < 0):
-        logger.critical(f'Requested frame does not exist, input only has \
-        {movie.shape[0]} frames.. exiting', file=sys.stderr)
-        sys.exit(0)
+        logger.critical(f'Requested frame does not exist, input only has {movie.shape[0]} frames.. exiting')
+        sys.exit(1)
 
     else:
         mask = spyboat.create_fixed_mask(movie, arguments.mask_frame,
                                          arguments.mask_thresh)
+elif arguments.masking == 'dynamic':
+    logger.info(f'Creating dynamic mask with threshold {arguments.mask_thresh}')
+    mask = spyboat.create_dynamic_mask(movie, arguments.mask_thresh)
+        
 else:
     logger.info('No masking requested..')
 
@@ -116,19 +128,11 @@ else:
 
 Wkwargs = {'dt': arguments.dt,
            'Tmin': arguments.Tmin,
-           'Tmax': arguments.Tmax,
-           'nT': arguments.nT}
-
-# the switches, maybe pass Nones directly?!
-if arguments.Tcutoff == -1:
-    Wkwargs['T_c'] = None
-else:
-    Wkwargs['T_c'] = arguments.Tcutoff
-
-if arguments.win_size == -1:
-    Wkwargs['win_size'] = None
-else:
-    Wkwargs['win_size'] = arguments.win_size
+           'Tmax': arguments.Tmax,           
+           'nT': arguments.nT,
+           'T_c' : arguments.Tcutoff, # defaults to None
+           'win_size' : arguments.win_size # defaults to None          
+}
 
 # start parallel processing
 results = spyboat.run_parallel(movie, arguments.ncpu, **Wkwargs)

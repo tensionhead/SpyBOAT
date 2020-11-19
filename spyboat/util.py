@@ -36,8 +36,9 @@ def open_tif(fname):
     movie : ndarray with ndim = 3, ordering is (Frames, Y, X)
     '''
 
-    if not ('tif' in fname) | ('tiff' in fname):
-        raise ValueError('Input file needs to be in tif/tiff format!')
+    # 'dat' is for Galaxy..
+    if not ('tif' in fname) | ('dat' in fname):
+        raise ValueError(f'Input file ({fname}) not in tif/tiff format!')
 
     logger.info(f'Opening {fname}')
     
@@ -82,7 +83,7 @@ def open_tif(fname):
         return tif_stack
 
     else:
-        logger.critical('Input shape:', tif_stack.shape, '[?]')
+        logger.critical(f'Input shape: {tif_stack.shape} [?]')
         logger.critical('Movie has wrong number of dimensions, is it a single slice stack?!')
         sys.exit(1)
 

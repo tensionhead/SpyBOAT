@@ -13,8 +13,12 @@
               --rescale $rescale_factor
           #end if
 
-          #if $masking.selection_mode != "no_mask":
+          #if $masking.selection_mode == "create_fixed_mask":
+	  --masking fixed
           --mask_frame $masking.mask_frame
+          --mask_thresh $masking.mask_thresh
+          #else if $masking.selection_mode == "create_dynamic_mask":
+	  --masking dynamic
           --mask_thresh $masking.mask_thresh
           #end if
 
@@ -22,15 +26,19 @@
           --Tmin $tmin
           --Tmax $tmax
           --nT $nt
-          --Tcutoff $tcutoff
+	  #if $tcutoff
+             --Tcutoff $tcutoff
+	  #end if
           #if $win_size:
              --win_size $win_size
           #end if
+
           --phase_out $phase_out
           --period_out $period_out
           --power_out $power_out
           --amplitude_out $amplitude_out
-          --ncpu "\${GALAXY_SLOTS:-1}"
+
+          --ncpu "\${GALAXY_SLOTS:-8}"
           > $log
 
     ]]></command>
@@ -56,10 +64,11 @@
 
         <conditional name="masking">
             <param label="Masking the output" name="selection_mode" type="select">
-                <option selected="true" value="no_mask">No masking</option>
-                <option value="create_mask">Create a mask</option>
-            </param>
-            <when value="create_mask">
+                <option selected="true" value="no_masking">No masking</option>
+                <option value="create_fixed_mask">Create a fixed mask</option>
+		<option value="create_dynamic_mask">Create a dynamic mask</option>
+	    </param>
+            <when value="create_fixed_mask">
                 <param name="mask_frame" type="integer" value="1" label="Create mask from frame"
                        help="Creates a fixed mask from the chosen frame of the input movie.">
                     <validator type="in_range" min="1" max="99999"/>
@@ -69,6 +78,12 @@
                     <validator type="in_range" min="0" max="999999"/>
                 </param>
             </when>
+            <when value="create_dynamic_mask">
+                <param name="mask_thresh" type="float" value="0" label="Threshold"
+                       help="For each frame of the input, all pixels below this threshold will be masked in the output.">
+                    <validator type="in_range" min="0" max="999999"/>
+                </param>
+            </when>	    
         </conditional>
 
         <param name="dt" type="float" value="1" label="Sampling interval" help="Time span between two frames">
@@ -89,11 +104,11 @@
         </param>
 
         <param name="tcutoff" type="float" value="40" label="Tcutoff"
-               help="Cut-off-period for sinc filter detrending, a blank field disables detrending">
+               help="Cut-off-period for sinc filter detrending, a blank field disables detrending" optional="true">
             <validator type="in_range" min="0" max="9999999"/>
         </param>
 
-        <param name="win_size" type="float" value="" label="Window size"
+        <param name="win_size" type="float" value="" label="Sliding window size"
                help="Window size for amplitude envelope estimation, leave blank to disable normalization "
                optional="true">
             <validator type="in_range" min="0" max="9999999"/>
@@ -122,17 +137,17 @@
     <help><![CDATA[
     **What it does**
 
-    Wavelet transforms an image stack (time,Y,X) pixel by pixel. Removal of low-frequency trends is inbuild via sinc filtering. 
-    There are four output movies generated (phase, period, amplitude and power). They have exactly the same dimensions (time,X,Y) as the (rescaled) input.
+    Wavelet transforms a 3d-image stack (time,Y,X) pixel by pixel and extracts/evaluates the wavelet ridge. Removal of low-frequency trends is provided via sinc filtering. 
+    There are four output movies generated (phase, period, amplitude and power). They have exactly the same dimensions (time,Y,X) as the (rescaled) input.
 
     Pre-smoothing of the data with Gaussian kernels is supported and often recommendable.
 
     To limit the number of Wavelet transformations (computing time), downscaling of the input movie resolution is recommended. 
-    Trimming away parts of the movie with no relevant data (e.g. outer dark edges) also speed up the processing.
+    Trimming away parts of the movie with no relevant data (e.g. outer dark edges) also speeds up the processing.
 
-    If multiple channels present, select the one containing the oscillatory signal. Multiple slices (z-stack) are not supported.
+    If multiple channels are present in your data, extract the channel of interest beforehand (e.g. with Fiji).
 
-    **Author**: Gregor Moenke (gregor.moenke@embl.de).
+    **Author**: Gregor Mönke (gregor.moenke@embl.de).
 
     **Wrapper by**: Jelle Scholtalbers (jelle.scholtalbers@embl.de).
 
@@ -148,6 +163,11 @@
 
         The Kernel bandwidth (in pixels) for the Gaussian kernels to use for pre-smoothing the input data. The default value of zero means that no pre-smoothing is done. Set this number to a desired kernel width to turn on pre-smoothing.
 
+    - Rescale factor:
+
+        Given in %, downsamples the spatial resolution of the input movie. This speeds
+        up the whole analysis by a lot.
+
     - Sampling interval:
 
         Time passed between consecutive measurements, e.g 'an image every 10 minutes'.
@@ -156,7 +176,7 @@
 
         The minimal period to scan for, this is the higher (in frequency) end of the spectrum. A warning will be given during processing if the chosen value deceeds the Nyquist limit (2 times the sampling interval).
 
-    - Biggest period:
+    - Largest period:
 
         The maximal period to scan for, this is the lower (in frequency) end of the spectrum. The inbuild Sinc filter will remove any periods larger than this form the data. Due to the 'roll off' of the filter, this value should be chosen generously. A warning will be given during processing if the chosen value exceeds the length of the time series.
 
@@ -166,7 +186,20 @@
 
         Spectral resolution =  ( biggest period - smallest period ) / number of periods
 
+    - Tcutoff:
+        
+        The cut-off period for the sinc filter, periods larger than this one will
+	be removed from the signal before the transform. If no value is given,
+	no detrending is performed. At least a gracious cut-off of around ~3 times
+	the largest period to be expected is recommended.
+    
+    - Sliding window size
 
+        Length (in time units, e.g. hours) of the sliding window to estimate
+	an amplitude envelope. The signal then gets normalized by this envelope,
+        meaning that all amplitudes will be around ~1 after the transform. The 
+        advantage is that signal with strong amplitude trends will have more
+	meaningful Wavelet powers after normalization.
 
     ]]></help>
 </tool>

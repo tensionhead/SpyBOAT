@@ -20,13 +20,16 @@ spyboat.processing.logger.setLevel(LogLevel)
 test_movie = datasets.two_sines
 dt = 2 # sampling interval, it's 2 hours for two_sines
 
+## top open a local file just use skimage's io:
+# io.imread('/path/to/my_awesome_movie.tif')
+
 ## analysis parameters
 Wkwargs = {'dt' : dt, # sampling interval
            'Tmin' : 20, # lowest period to scan, in hours
            'Tmax' : 30, # highest period to scan, in hours          
            'nT' : 200,   # number of periods/transforms
-           'T_c' : 40,  # sinc cut off period, in hours
-           'win_size' : None}   # Amplitude normalization sliding window size
+           'T_c' : 40,  # sinc cut off period, in hours, None disables detrending
+           'win_size' : None}   # Ampl. normalization sliding window size, None disables
 
 # down sample to 80% of original size
 ds_movie = spyboat.down_sample(test_movie, 0.8)
