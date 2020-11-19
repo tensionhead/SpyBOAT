@@ -10,9 +10,9 @@ import grad_flux as gf
 import plotting as pl
 plt.ion()
 
-movie = io.imread('Quad-movie1.tif')
+movie = io.imread('Quad-movie2-crop.tif')
 
-frame = 40
+frame = 250
 
 # get the gradient vectorfield
 dY, dX = gf.phase_gradient(movie[frame,...])
@@ -21,7 +21,7 @@ plt.contour(movie[frame], levels = 35)
 pl.show_vfield(dX, dY, skip = 2)
 
 # initial values
-x_old, y_old = 20, 39
+x_old, y_old = 49, 0
 alpha = 2
 
 xs, ys = [], []
