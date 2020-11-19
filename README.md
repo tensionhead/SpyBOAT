@@ -34,12 +34,19 @@ of the time-frequency analysis:
  before starting the computationally costly 2D stack transforms with SpyBOAT. 
 
 
-### Spatial downscaling and smoothing
+### Spatial downsampling and smoothing
 
 Typically bio-image data aquired by tissue microscopy has much higher spatial resolution 
 than temporal resolution. To save computing time and ressources, it 
 is advisable to **spatially downscale** the input movie. SpyBOAT offers a simple rescaling based
-on a scaling factor in %. 
+on a scaling factor in %.
+
+Spatial(!) smoothing is important, as SpyBOAT operates on every time-series *behind* a pixel (so along
+the time axis of the stack). Individual pixels tend to be quite noisy, so to faithfully resolve the 
+larger structures of an oscillatory field SpyBOAT offers a standard Gaussian blur. For optimal results,
+the user might want to smooth (and/or downsample) her input movie beforehand (e.g. with Fiji), and then inspect the signals
+sitting on a few single pixels. Or even better, extract a few single-pixel signals, and run them through pyBOAT. If the results
+are satisfying there, the transform of the whole movie with SpyBOAT should also work well.
 
 ### Masking
 
