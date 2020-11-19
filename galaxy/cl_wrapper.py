@@ -5,13 +5,13 @@ import argparse
 import sys, os
 import logging
 
+
 import spyboat
 
 from skimage import io
 from numpy import float32
 
-# logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-logging.basicConfig(level=logging.INFO, stream=sys.stderr)
+logging.basicConfig(level=logging.INFO, stream=sys.stdout, force=True)
 logger = logging.getLogger('wrapper')
 
 # ----------command line parameters ---------------
