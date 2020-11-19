@@ -14,9 +14,6 @@ import seaborn as sns
 import grad_flux as gf
 ppl.ion()
 
-# Husl diverging
-div_cmap = sns.diverging_palette(240,20,n = 100,
-                             sep = 10, center = 'dark', as_cmap = True)
 
 flux_cm = 'RdGy_r'
 
@@ -65,7 +62,7 @@ def show_gradient( frame, skip = 5, vlen_perc = 99, title = None):
 
     fig, ax = ppl.subplots()
 
-    im = ax.imshow(frame, vmin = -pi, vmax = pi, cmap = 'bwr')#, vmin = -pi, vmax = pi)
+    im = ax.imshow(frame, vmin = 0, vmax = 2*pi, cmap = 'bwr')#, vmin = -pi, vmax = pi)
 
     show_vfield(vx, vy, skip = skip, vlen_perc = vlen_perc, width = 0.0025)
 
@@ -188,10 +185,6 @@ def mk_gradient_tifs(movie, skip = 7):
 
 # get test data
 
-if __name__ == '__main__':
-    
-    print("Loading demo data..")
-    from demo_data import RAFL1, RAFL2, L6SO
 
 # for the tif pyplots
 cmap = cm.gray

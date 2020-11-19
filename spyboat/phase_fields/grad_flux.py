@@ -6,7 +6,7 @@ def vec_len(dy, dx):
 
     return np.sqrt( dx**2 + dy**2 )
 
-def pgradient(phase_field):
+def phase_gradient(phase_field):
 
     ''' 
     "repairs" the central differences of np.gradient
