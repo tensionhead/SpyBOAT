@@ -59,10 +59,10 @@ for key in results:
 frame = 54
 
 # look at a phase snapshot
-spyplot.phase_snapshot(results['phase'][frame,...])
+spyplot.phase_snapshot(results['phase'][frame])
 
 # look at a period snapshot
-spyplot.period_snapshot(results['period'][frame,...],
+spyplot.period_snapshot(results['period'][frame],
                                  Tmin = Wkwargs['Tmin'],
                                  Tmax = Wkwargs['Tmax'],
                                  time_unit = 'h')
@@ -70,12 +70,8 @@ spyplot.period_snapshot(results['period'][frame,...],
 # look at an amplitude snapshot
 spyplot.amplitude_snapshot(results['amplitude'][frame,...])
 
-# input movie snapshot
-ppl.figure()
-ppl.imshow(input_movie[frame,...], aspect = 'auto')
-cb = ppl.colorbar(shrink = 0.9)
-cb.set_label('Intensity [a.u.]')
-ppl.axis('off')
+# finally plot also the input for that frame
+spyplot.input_snapshot(input_movie[frame])
 
 base_name = 'example_movie'
 

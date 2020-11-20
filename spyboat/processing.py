@@ -168,33 +168,12 @@ def run_parallel(movie, n_cpu, **Wkwargs):
           'amplitude' : 32bit ndarray, holding the instantaneous amplitudes 
     '''
 
-    ncpu_avail = mp.cpu_count() # number of available processors
-
-    logger.info(f"{ncpu_avail} CPU's available")
-
-    if n_cpu > ncpu_avail:
-        logger.warning(f"Warning: requested {n_cpu} CPU's but only {ncpu_avail} available!")
-        logger.info(f"Setting number of requested CPU's to {ncpu_avail}..")
-
-        n_cpu = ncpu_avail
-
-    logger.info(f"Starting {n_cpu} process(es)..")
-
-
-    # initialize pool
-    pool = mp.Pool( n_cpu )
-
-    # split input movie row-wise (axis 1, axis 0 is time!)
-    movie_split = np.array_split(movie, n_cpu, axis = 1)
-
     # starmap doesn't support **kwargs passing, we need to explicitly
     # declare the parameters :/
-    # default to None..
+    # defaults to None..
+        
     if not 'win_size' in Wkwargs:
         Wkwargs['win_size'] = None
-
-    if not 'T_c' in Wkwargs:
-        Wkwargs['T_c'] = None
         
     try:
         dt = Wkwargs['dt']
@@ -206,6 +185,37 @@ def run_parallel(movie, n_cpu, **Wkwargs):
     except KeyError as e:
         logger.critical(f"Wavelet analysis parameter is missing: {repr(e)}, exiting..")
         sys.exit(1)
+
+    if Wkwargs['T_c'] is None:
+        logger.info(f'No sinc-detrending requested..')
+    else:
+        logger.info("'Sinc-detrending with {Wkwargs['T_c']}..")
+
+    if Wkwargs['win_size'] is None:
+        logger.info(f'No amplitude normalization requested..')
+    else:
+        logger.info(f"Amplitude normalization with {Wkwargs['win_size']}..")
+        
+
+    # --- set up multiprocessing ---
+
+    # initialize pool
+    pool = mp.Pool( n_cpu )
+    
+    ncpu_avail = mp.cpu_count() # number of available processors
+
+    logger.info(f"{ncpu_avail} CPU's available")
+
+    if n_cpu > ncpu_avail:
+        logger.warning(f"Warning: requested {n_cpu} CPU's but only {ncpu_avail} available!")
+        logger.info(f"Setting number of requested CPU's to {ncpu_avail}..")
+
+        n_cpu = ncpu_avail
+
+    # split input movie row-wise (axis 1, axis 0 is time!)
+    movie_split = np.array_split(movie, n_cpu, axis = 1)    
+        
+    logger.info(f"Starting {n_cpu} process(es)..")
     
     # start the processes, result is list
     # of tuples (phase, period, power, amplitude)

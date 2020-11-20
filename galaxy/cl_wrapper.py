@@ -5,10 +5,11 @@ import argparse
 import sys, os
 import logging
 
-import spyboat
-
 from skimage import io
 from numpy import float32
+
+import spyboat
+import output_report
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, force=True)
 logger = logging.getLogger('wrapper')
@@ -97,7 +98,7 @@ else:
 
 # check if pre-smoothing requested
 if not arguments.gauss_sigma:
-    logger.info('No pre-smoothing requested')
+    logger.info('No pre-smoothing requested..')
 else:
     logger.info(f'Pre-smoothing the movie with Gaussians, sigma = {arguments.gauss_sigma:.2f}..')
 
@@ -147,6 +148,10 @@ if mask is not None:
         logger.info(f'Masking {key}')
         spyboat.apply_mask(results[key], mask, fill_value=-1)
 
+# jump to the middle of the movie
+snapshot_frame = int(movie.shape[0]/2)
+output_report.produce_snapshots(movie, results, snapshot_frame, Wkwargs)
+
 # save phase movie
 io.imsave(arguments.phase_out, results['phase'], plugin="tifffile")
 logger.info(f'Written {arguments.phase_out}')
@@ -162,7 +167,6 @@ logger.info(f'Written {arguments.amplitude_out}')
 
 # save out the probably pre-processed (scaled and blurred) input movie for
 # direct comparison to results and coordinate mapping etc.
-# probably won't work with galaxy
 if arguments.preprocessed_out:
     io.imsave(arguments.preprocessed_out, movie, plugin='tifffile')
     logger.info(f'Written {arguments.preprocessed_out}')
