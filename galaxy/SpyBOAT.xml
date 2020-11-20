@@ -37,6 +37,9 @@
           --period_out $period_out
           --power_out $power_out
           --amplitude_out $amplitude_out
+	  #if $preprocessed_out:
+	     --preprocessed_out $preprocessed_out
+	  #end if
 
           --ncpu "\${GALAXY_SLOTS:-8}"
           > $log
@@ -63,7 +66,7 @@
         </param>
 
         <conditional name="masking">
-            <param label="Masking the output" name="selection_mode" type="select">
+            <param label="Masking the output" name="selection_mode" type="select" help="Create a mask from the (blurred/rescaled) input to mask out regions without oscillations/signal in the output">
                 <option selected="true" value="no_masking">No masking</option>
                 <option value="create_fixed_mask">Create a fixed mask</option>
 		<option value="create_dynamic_mask">Create a dynamic mask</option>
@@ -114,7 +117,12 @@
             <validator type="in_range" min="0" max="9999999"/>
         </param>
 
-
+        <conditional name="save_preprocessed">
+            <param label="Save preprocessed input" name="selection" type="select" help="Save the blurred/rescaled input to history? ">
+                <option selected="true" value="No">No</option>
+                <option value="Yes">Yes</option>
+	    </param>
+	</conditional>
     </inputs>
 
     <outputs>
@@ -122,6 +130,10 @@
         <data name="period_out" format="tiff" label="period_${movie.name}"/>
         <data name="power_out" format="tiff" label="power_${movie.name}"/>
         <data name="amplitude_out" format="tiff" label="amplitude_${movie.name}"/>
+	<data name="preprocessed_out" format="tiff" label="preproc_${movie.name}">
+	  <filter>save_preprocessed['selection'] == 'Yes'</filter>
+	</data>
+
         <data name="log" format="txt" label="log_${movie.name}.txt"/>
     </outputs>
 

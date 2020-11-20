@@ -5,7 +5,6 @@ import argparse
 import sys, os
 import logging
 
-
 import spyboat
 
 from skimage import io
@@ -24,8 +23,8 @@ parser.add_argument('--phase_out', help='Phase output file name', required=True)
 parser.add_argument('--period_out', help='Period output file name', required=True)
 parser.add_argument('--power_out', help='Power output file name', required=True)
 parser.add_argument('--amplitude_out', help='Amplitude output file name', required=True)
-parser.add_argument('--save_input', help='Set to true to save out the pre-processed input movie', type=bool,
-                    default=False, required=False)
+parser.add_argument('--preprocessed_out', help="Preprocessed-input output file name, 'None'", required=False)
+
 
 # (Optional) Multiprocessing
 
@@ -56,9 +55,12 @@ parser.add_argument('--mask_frame',
                     required=False, type=int)
 
 
-parser.add_argument('--mask_thresh', help='The threshold of the mask, all pixels with less than this value get masked',
+parser.add_argument('--mask_thresh', help='The threshold of the mask, all pixels with less than this value get masked (if masking enabled).',
                     required=False, type=float,
                     default=0)
+
+# output overview/snapshots
+parser.add_argument('--output-report', help="Set to 'True' to generate an analysis report with snapshots of the output movies", default=False, required=False, type=bool)
 
 parser.add_argument('--version', action='version', version='0.0.1')
 
@@ -161,10 +163,6 @@ logger.info(f'Written {arguments.amplitude_out}')
 # save out the probably pre-processed (scaled and blurred) input movie for
 # direct comparison to results and coordinate mapping etc.
 # probably won't work with galaxy
-if arguments.save_input:
-    input_name = os.path.basename(arguments.input_path)
-    input_name = input_name.split('.')[-2]
-    dirname = os.path.dirname(arguments.input_path)
-    out_path = os.path.join(dirname, input_name + '_preproc.tif')
-    io.imsave(out_path, movie.astype(float32))
-    logger.info(f'Written {out_path}')
+if arguments.preprocessed_out:
+    io.imsave(arguments.preprocessed_out, movie, plugin='tifffile')
+    logger.info(f'Written {arguments.preprocessed_out}')
