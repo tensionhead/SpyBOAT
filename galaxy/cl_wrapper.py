@@ -154,9 +154,12 @@ if mask is not None:
 # --- Produce Output Report Figures/png's ---
 
 # create the directory, yes we have to do that ourselves :)
+# galaxy then magically renders the  html from that
 try:
 
-    os.mkdir(arguments.report_img_path)
+    if arguments.report_img_path != '.':
+        logger.info(f'Creating report directory {arguments.report_img_path}'
+        os.mkdir(arguments.report_img_path)    
 
     # jump to the middle of the movie
     snapshot_frame = int(movie.shape[0]/2)
