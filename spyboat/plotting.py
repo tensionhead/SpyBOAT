@@ -3,6 +3,8 @@ import matplotlib.pylab as ppl
 from numpy import pi
 import numpy as np
 
+from pyboat.core import complex_average
+
 # same for all snapshots
 margins = {'left' : 0.01, 'right':0.95, 'top':0.94, 'bottom':0.01}
 
@@ -140,4 +142,31 @@ def power_distr_dynamics(power_movie, Wkwargs, mask_value = -1):
     ax.set_ylabel('Power [wnp]', fontsize=FONT_SIZE)
     ax.grid(axis='y')
     ax.set_title("Wavelet Power dynamics", fontsize=FONT_SIZE)
+
+def phase_coherence_dynamics(phase_movie, Wkwargs, mask_value = -1):
+
+    '''
+    Kuramoto Order paramter over time.
+    Pass Wkwargs for time units.
+    '''
+
+    Rs = []
+    for img in phase_movie:
+        
+        # flattened
+        values = img[img!=mask_value]
+        R, Psi = complex_average(values)
+        Rs.append(R)
+
+    fig, ax = ppl.subplots()
+
+    xvec = np.arange(phase_movie.shape[0]) * Wkwargs['dt']
+    
+    ax.plot(xvec, Rs, lw = 3.5, alpha = 0.7,
+            color = 'crimson')
+    ax.set_xlabel('Time [a.u].', fontsize=FONT_SIZE)
+    ax.set_ylabel('Phase coherence', fontsize=FONT_SIZE)
+    ax.set_ylim( (-.05, 1.1) )
+    ax.grid(axis='y')
+    ax.set_title("Phase Coherence dynamics", fontsize=FONT_SIZE)
     

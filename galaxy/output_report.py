@@ -58,7 +58,7 @@ def produce_distr_plots(results, Wkwargs):
     '''
     Output file names are:
     
-    period_distr.png and power_distr.png
+    period_distr.png, power_distr.png and phase_distr.png
     '''
 
     spyplot.period_distr_dynamics(results['period'], Wkwargs)
@@ -67,8 +67,12 @@ def produce_distr_plots(results, Wkwargs):
     spyplot.power_distr_dynamics(results['power'], Wkwargs)
     fig = ppl.gcf()
     fig.savefig(f'power_distr.png', dpi=DPI)
-    
-    logger.info(f'Produced 2 distribution plots..')
+
+    spyplot.phase_coherence_dynamics(results['phase'], Wkwargs)
+    fig = ppl.gcf()
+    fig.savefig(f'phase_distr.png', dpi=DPI)
+        
+    logger.info(f'Produced 3 distribution plots..')
 
     
 def create_html(movie_name, frame_num):
@@ -89,6 +93,11 @@ def create_html(movie_name, frame_num):
        <figure class=”distr_gallery__item distr_gallery__item--2">
          <img src="power_distr.png" alt="Power" class="distr_gallery__img">
        </figure>
+
+       <figure class=”distr_gallery__item distr_gallery__item--3">
+         <img src="phase_distr.png" alt="Phase" class="distr_gallery__img">
+       </figure>
+
     </div>
 
     <h2 style="text-align:center"> Snapshots - Frame {frame_num}</h2>

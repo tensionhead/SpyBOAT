@@ -76,6 +76,7 @@ spyplot.input_snapshot(input_movie[frame])
 # distributions over time
 spyplot.period_distr_dynamics(results['period'], Wkwargs)
 spyplot.power_distr_dynamics(results['power'], Wkwargs)
+spyplot.phase_coherence_dynamics(results['phase'], Wkwargs)
 
 base_name = 'example_movie'
 
