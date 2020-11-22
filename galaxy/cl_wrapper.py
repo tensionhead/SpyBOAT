@@ -61,7 +61,10 @@ parser.add_argument('--mask_thresh', help='The threshold of the mask, all pixels
                     default=0)
 
 # output overview/snapshots
-parser.add_argument('--output-report', help="Set to 'True' to generate an analysis report with snapshots of the output movies", default=False, required=False, type=bool)
+parser.add_argument('--html_fname', help="Name of the html report.",
+                    default='OutputReport.html', required=False, type=str)
+
+parser.add_argument('--report_img_path', help="For the html report, can be set in Galaxy. Defaults to cwd.", default='.', required=False, type=str)
 
 parser.add_argument('--version', action='version', version='0.0.1')
 
@@ -149,10 +152,26 @@ if mask is not None:
         spyboat.apply_mask(results[key], mask, fill_value=-1)
 
 # --- Produce Output Report Figures/png's ---
-# jump to the middle of the movie
-snapshot_frame = int(movie.shape[0]/2)
-output_report.produce_snapshots(movie, results, snapshot_frame, Wkwargs)
-output_report.produce_distr_plots(results, Wkwargs)
+
+# create the directory, yes we have to do that ourselves :)
+try:
+
+    os.mkdir(arguments.report_img_path)
+
+    # jump to the middle of the movie
+    snapshot_frame = int(movie.shape[0]/2)
+    output_report.produce_snapshots(movie, results, snapshot_frame, Wkwargs, img_path=arguments.report_img_path)
+    
+    output_report.produce_distr_plots(results, Wkwargs, img_path=arguments.report_img_path)
+    
+    output_report.create_html(snapshot_frame, arguments.html_fname)
+                          
+    
+except FileExistsError as e:
+    logger.critical(f"Could not create html report directory: {repr(e)}")
+
+
+# --- save out result movies ---
 
 # save phase movie
 io.imsave(arguments.phase_out, results['phase'], plugin="tifffile")

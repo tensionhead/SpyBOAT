@@ -41,6 +41,9 @@
 	     --preprocessed_out $preprocessed_out
 	  #end if
 
+	  --html_fname $html_out
+	  --report_img_path '$html_out.extra_files_path'
+
           --ncpu "\${GALAXY_SLOTS:-8}"
           > $log
 
@@ -133,8 +136,10 @@
 	<data name="preprocessed_out" format="tiff" label="preproc_${movie.name}">
 	  <filter>save_preprocessed['selection'] == 'Yes'</filter>
 	</data>
-
+	
         <data name="log" format="txt" label="log_${movie.name}.txt"/>
+	<data format="html" name="html_out" label="Report_${movie.name}"/>
+
     </outputs>
 
     <tests>
