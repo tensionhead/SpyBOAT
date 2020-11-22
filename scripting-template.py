@@ -23,6 +23,7 @@ dt = 2 # sampling interval, it's 2 hours for two_sines
 ## top open a local file just use skimage's io:
 # io.imread('/path/to/my_awesome_movie.tif')
 
+
 ## analysis parameters
 Wkwargs = {'dt' : dt, # sampling interval
            'Tmin' : 20, # lowest period to scan, in hours
@@ -32,7 +33,7 @@ Wkwargs = {'dt' : dt, # sampling interval
            'win_size' : None}   # Ampl. normalization sliding window size, None disables
 
 # down sample to 80% of original size
-ds_movie = spyboat.down_sample(test_movie, 0.8)
+ds_movie = spyboat.down_sample(test_movie, 0.5)
 
 # gaussian blur
 input_movie = spyboat.gaussian_blur(ds_movie, sigma = 2.5)
@@ -63,15 +64,18 @@ spyplot.phase_snapshot(results['phase'][frame])
 
 # look at a period snapshot
 spyplot.period_snapshot(results['period'][frame],
-                                 Tmin = Wkwargs['Tmin'],
-                                 Tmax = Wkwargs['Tmax'],
-                                 time_unit = 'h')
+                        Wkwargs,
+                        time_unit = 'h')
 
 # look at an amplitude snapshot
 spyplot.amplitude_snapshot(results['amplitude'][frame,...])
 
 # finally plot also the input for that frame
 spyplot.input_snapshot(input_movie[frame])
+
+# distributions over time
+spyplot.period_distr_dynamics(results['period'], Wkwargs)
+spyplot.power_distr_dynamics(results['power'], Wkwargs)
 
 base_name = 'example_movie'
 

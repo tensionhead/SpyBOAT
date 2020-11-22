@@ -189,7 +189,7 @@ def run_parallel(movie, n_cpu, **Wkwargs):
     if Wkwargs['T_c'] is None:
         logger.info(f'No sinc-detrending requested..')
     else:
-        logger.info("'Sinc-detrending with {Wkwargs['T_c']}..")
+        logger.info(f"Sinc-detrending with cutoff {Wkwargs['T_c']}..")
 
     if Wkwargs['win_size'] is None:
         logger.info(f'No amplitude normalization requested..')

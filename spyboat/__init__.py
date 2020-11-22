@@ -1,7 +1,7 @@
 """ SpyBOAT - Spatial pyBOAT """
 
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 # io
 from .util import open_tif, save_to_tifs

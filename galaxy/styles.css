@@ -1,0 +1,47 @@
+
+body{ margin:10 100; background:whitesmoke; }
+.center{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 40%;}
+
+/* matplotlib output at 1600x1200  */
+.distr_gallery {
+    display: grid;
+    margin: 0 auto;
+    text-align: center;
+    grid-template-columns: repeat(2,1fr);
+    grid-template-rows: 25vw;    
+    grid-gap: 5px;
+}
+.distr_gallery__img {
+    width: 90%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+/* matplotlib output at 1600x1200  */
+.snapshot_gallery {
+    display: grid;
+    margin: 0 auto;
+    border: 1px dashed rgba(4, 4, 4, 0.35);
+    text-align: center;
+    grid-template-columns: repeat(2,1fr);
+    grid-template-rows: repeat(2,25vw);
+    grid-gap: 5px;
+}
+.snapshot_gallery__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#areaA {
+  background-color: lime;
+}
+
+#areaB {
+  background-color: yellow;
+}

@@ -1,9 +1,12 @@
 """ Some convenience plotting functions """
 import matplotlib.pylab as ppl
 from numpy import pi
+import numpy as np
 
 # same for all snapshots
 margins = {'left' : 0.01, 'right':0.95, 'top':0.94, 'bottom':0.01}
+
+FONT_SIZE = 18
 
 def phase_snapshot(snapshot):
 
@@ -24,7 +27,10 @@ def phase_snapshot(snapshot):
     return ax
 
 
-def period_snapshot(snapshot, Tmin, Tmax, time_unit="h"):
+def period_snapshot(snapshot, Wkwargs, time_unit="h"):
+    
+    Tmin = Wkwargs['Tmin']
+    Tmax = Wkwargs['Tmax']
 
     cmap = ppl.get_cmap("magma_r")
     cmap.set_under("gray")
@@ -70,3 +76,68 @@ def input_snapshot(snapshot, unit = 'a.u'):
 
     return ax
 
+
+def compute_distr_dynamics(movie, mask_value = -1):
+
+    '''
+    Adheres to spyboats stack ordering: (Frames,Y,X)
+    and skips over pixels with the *mask_value*.
+    '''
+
+    res = {'median' : [], 'q1' : [], 'q3' : []}
+    for img in movie:
+        
+        # flattened
+        values = img[img!=mask_value]
+        med = np.median(values)
+        q1 = np.percentile(values, 25)
+        q3 = np.percentile(values, 75)
+        res['median'].append(med)
+        res['q1'].append(q1)
+        res['q3'].append(q3)
+
+    return res
+
+def period_distr_dynamics(period_movie, Wkwargs, mask_value = -1):
+
+    '''
+    Pass Wkwargs for axis range and time units.
+    '''
+
+    dis = compute_distr_dynamics(period_movie, mask_value)
+
+    fig, ax = ppl.subplots()
+
+    xvec = np.arange(period_movie.shape[0]) * Wkwargs['dt']
+    
+    ax.plot(xvec, dis['median'], lw = 2.5, alpha = 0.9,
+            color = 'cornflowerblue')
+    ax.fill_between(xvec, dis['q1'], dis['q3'], color = 'cornflowerblue',
+                    alpha = 0.3)
+    ax.set_ylim( (0.6*Wkwargs['Tmin'],1.4*Wkwargs['Tmax']) )
+    ax.set_xlabel('Time [a.u].')
+    ax.set_ylabel('Period [a.u.]')
+    ax.grid(axis='y')
+    ax.set_title("Period dynamics", fontsize=18)
+
+def power_distr_dynamics(power_movie, Wkwargs, mask_value = -1):
+
+    '''
+    Pass Wkwargs for time units.
+    '''
+
+    dis = compute_distr_dynamics(power_movie, mask_value)
+
+    fig, ax = ppl.subplots()
+
+    xvec = np.arange(power_movie.shape[0]) * Wkwargs['dt']
+    
+    ax.plot(xvec, dis['median'], lw = 2.5, alpha = 0.9,
+            color = 'darkgray')
+    ax.fill_between(xvec, dis['q1'], dis['q3'], color = 'darkgray',
+                    alpha = 0.3)
+    ax.set_xlabel('Time [a.u].', fontsize=FONT_SIZE)
+    ax.set_ylabel('Power [wnp]', fontsize=FONT_SIZE)
+    ax.grid(axis='y')
+    ax.set_title("Wavelet Power dynamics", fontsize=FONT_SIZE)
+    

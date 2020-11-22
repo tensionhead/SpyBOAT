@@ -111,13 +111,13 @@ if arguments.masking == 'fixed':
     if not arguments.mask_frame:
         logger.critical("Frame number for fixed masking is missing!")
         sys.exit(1)
-    logger.info(f'Creating fixed mask from frame {arguments.mask_frame}')
 
     if (arguments.mask_frame > movie.shape[0]) or (arguments.mask_frame < 0):
         logger.critical(f'Requested frame does not exist, input only has {movie.shape[0]} frames.. exiting')
         sys.exit(1)
 
     else:
+        logger.info(f'Creating fixed mask from frame {arguments.mask_frame} with threshold {arguments.mask_thresh}')  
         mask = spyboat.create_fixed_mask(movie, arguments.mask_frame,
                                          arguments.mask_thresh)
 elif arguments.masking == 'dynamic':
@@ -148,9 +148,11 @@ if mask is not None:
         logger.info(f'Masking {key}')
         spyboat.apply_mask(results[key], mask, fill_value=-1)
 
+# --- Produce Output Report Figures/png's ---
 # jump to the middle of the movie
 snapshot_frame = int(movie.shape[0]/2)
 output_report.produce_snapshots(movie, results, snapshot_frame, Wkwargs)
+output_report.produce_distr_plots(results, Wkwargs)
 
 # save phase movie
 io.imsave(arguments.phase_out, results['phase'], plugin="tifffile")
