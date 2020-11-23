@@ -1,6 +1,6 @@
 <tool id="SpyBOAT" name="SpyBOAT" version="0.0.1">
     <requirements>
-        <requirement type="package" version="0.0.2">spyboat</requirement>
+        <requirement type="package" version="0.0.4">spyboat</requirement>
     </requirements>
     <version_command>python $__tool_directory__/cl_wrapper.py --version</version_command>
     <command detect_errors="exit_code"><![CDATA[
