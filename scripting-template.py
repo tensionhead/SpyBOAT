@@ -33,10 +33,10 @@ Wkwargs = {'dt' : dt, # sampling interval
            'win_size' : None}   # Ampl. normalization sliding window size, None disables
 
 # down sample to 80% of original size
-ds_movie = spyboat.down_sample(test_movie, 0.5)
+input_movie = spyboat.down_sample(test_movie, 0.8)
 
 # gaussian blur
-input_movie = spyboat.gaussian_blur(ds_movie, sigma = 2.5)
+input_movie = spyboat.gaussian_blur(input_movie, sigma = 2.5)
 
 # create a fixed mask from frame 20
 mask2d = spyboat.create_fixed_mask(input_movie, frame = 20, threshold = 10)

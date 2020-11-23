@@ -195,7 +195,8 @@ def gaussian_blur(movie, sigma):
 
     movie_gb = np.zeros( movie.shape )
     for frame in range(movie.shape[0]):
-        movie_gb[frame,...] = gaussian(movie[frame,...], sigma = sigma)
+        movie_gb[frame,...] = gaussian(movie[frame,...], sigma = sigma,
+                                       preserve_range=True)
 
     return movie_gb    
 
