@@ -97,10 +97,11 @@ def create_html(frame_num, html_fname='OutputReport.html'):
 
     html_string =f'''
     <html>
+    <title>SpyBOAT Output Report</title>
     <head>
         <!-- that doesn't work with galaxy.. -->
         <!--link rel="stylesheet" href="styles.css"-->
-      <style>
+      <style type="text/css">
         body{{ margin:10 100; background:whitesmoke; }}
         /*body{{ margin:10 100; background:darkslategrey; }}*/
         .center{{
@@ -194,4 +195,4 @@ def create_html(frame_num, html_fname='OutputReport.html'):
     logger.info(f'Created html report')
     return html_string
 
-# create_html(125, img_path='../galaxy/')
+# create_html(125)
