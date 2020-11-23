@@ -117,7 +117,7 @@ def create_html(frame_num, html_fname='OutputReport.html'):
             text-align: center;
             /* border: 1px dashed rgba(4, 4, 4, 0.35);     */
             grid-template-columns: repeat(3,1fr);
-            grid-template-rows: 20vw;    
+            grid-template-rows: 25vw;    
             grid-gap: 0px;
             column-gap: 0px
         }}
@@ -195,4 +195,5 @@ def create_html(frame_num, html_fname='OutputReport.html'):
     logger.info(f'Created html report')
     return html_string
 
+# for local testing
 # create_html(125)
