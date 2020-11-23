@@ -71,7 +71,7 @@ Install SpyBOAT via pip:
 
 ```bash pip3 install spyboat```
 
-or conda (*soon..*):
+or conda:
 
 ```bash
 conda config --add channels conda-forge
