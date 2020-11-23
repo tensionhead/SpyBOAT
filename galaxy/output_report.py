@@ -39,11 +39,13 @@ def produce_snapshots(input_movie, results, frame, Wkwargs,
     fig = ppl.gcf()
     out_path = os.path.join(img_path, f'input_frame{frame}.png')
     fig.savefig(out_path, dpi=DPI)
+    ppl.close(fig)
     
     spyplot.phase_snapshot(results['phase'][frame])
     fig = ppl.gcf()
     out_path = os.path.join(img_path, f'phase_frame{frame}.png')    
     fig.savefig(out_path, dpi=DPI)
+    ppl.close(fig)
 
     spyplot.period_snapshot(results['period'][frame],
                             Wkwargs,
@@ -52,13 +54,14 @@ def produce_snapshots(input_movie, results, frame, Wkwargs,
     fig = ppl.gcf()
     out_path = os.path.join(img_path, f'period_frame{frame}.png')    
     fig.savefig(out_path, dpi=DPI)
+    ppl.close(fig)
     
     spyplot.amplitude_snapshot(results['amplitude'][frame])
     fig = ppl.gcf()
     out_path = os.path.join(img_path, f'amplitude_frame{frame}.png')    
     fig.savefig(out_path, dpi=DPI)
+    ppl.close(fig)
         
-
     logger.info(f'Produced 4 snapshots for frame {frame}..')
 
 def produce_distr_plots(results, Wkwargs, img_path='.'):
@@ -87,14 +90,44 @@ def produce_distr_plots(results, Wkwargs, img_path='.'):
     logger.info(f'Produced 3 distribution plots..')
 
     
-def create_html(frame_num, html_fname='OutputReport.html'):
+def create_html(frame_nums, html_fname='OutputReport.html'):
 
     '''
-    The html generated assumes the respective png's (7 in total)
+    The html generated assumes the respective png's 
     have been created with 'produce_snapshots' and 'produce_distr_plots'
     and can be found at the cwd (that's how Galaxy works..)
     '''
 
+    # -- create a gallery for every frame in frame_nums --
+    
+    galleries = ''
+    for frame_num in frame_nums:
+        new_gal =f'''
+        <div class="FrameSlides"> 
+        <h2 style="text-align:center"> Frame {frame_num} </h2>
+
+            <div class="snapshot_gallery">
+
+               <figure class=”snapshot_gallery__item snapshot_gallery__item--1">
+                 <img src="input_frame{frame_num}.png" alt="The Input" class="snapshot_gallery__img">
+               </figure>
+
+               <figure class=”snapshot_gallery__item snapshot_gallery__item--2">
+                 <img src="phase_frame{frame_num}.png" alt="Phase" class="snapshot_gallery__img">
+               </figure>
+
+               <figure class=”snapshot_gallery__item snapshot_gallery__item--3">
+                 <img src="period_frame{frame_num}.png" alt="Period" class="snapshot_gallery__img">
+               </figure>
+
+               <figure class=”snapshot_gallery__item snapshot_gallery__item--4">
+                 <img src="amplitude_frame{frame_num}.png" alt="Amplitude" class="snapshot_gallery__img">
+               </figure>
+            </div>
+        </div>
+        '''
+        galleries += new_gal
+    
     html_string =f'''
     <html>
     <title>SpyBOAT Output Report</title>
@@ -105,10 +138,11 @@ def create_html(frame_num, html_fname='OutputReport.html'):
         body{{ margin:10 100; background:whitesmoke; }}
         /*body{{ margin:10 100; background:darkslategrey; }}*/
         .center{{
+            text-align: center;
             display: block;
             margin-left: auto;
             margin-right: auto;
-            width: 40%;}}
+            width: 100%;}}
 
         /* matplotlib output at 1600x1200  */
         .distr_gallery {{
@@ -163,27 +197,37 @@ def create_html(frame_num, html_fname='OutputReport.html'):
 
     </div>
 
-    <h2 style="text-align:center"> Snapshots - Frame {frame_num}</h2>
-    <div class="snapshot_gallery">
-       <figure class=”snapshot_gallery__item snapshot_gallery__item--1">
-         <img src="input_frame{frame_num}.png" alt="The Input" class="snapshot_gallery__img">
-       </figure>
-
-       <figure class=”snapshot_gallery__item snapshot_gallery__item--2">
-         <img src="phase_frame{frame_num}.png" alt="Phase" class="snapshot_gallery__img">
-       </figure>
-
-       <figure class=”snapshot_gallery__item snapshot_gallery__item--3">
-         <img src="period_frame{frame_num}.png" alt="Period" class="snapshot_gallery__img">
-       </figure>
-
-       <figure class=”snapshot_gallery__item snapshot_gallery__item--4">
-         <img src="amplitude_frame{frame_num}.png" alt="Amplitude" class="snapshot_gallery__img">
-       </figure>
+    <h1 style="text-align:center"> Snapshots </h2>
+    <!-- trigger the javascript at the end--->
+    <div class="center">
+        <button class="w3-button" onclick="plusDivs(-1)">&#10094; Prev</button>
+        <button class="w3-button" onclick="plusDivs(1)">Next &#10095;</button>
     </div>
-    
 
-        <!-- *** Section 1 *** --->
+    <!-- defines all elements of the "FrameSlides" class --->
+    {galleries}
+    </div>
+
+    <!-- javascript with escaped '{{'--->
+    <script>
+        var slideIndex = 1;
+        showDivs(slideIndex);
+
+        function plusDivs(n) {{
+          showDivs(slideIndex += n);
+        }}
+
+        function showDivs(n) {{
+          var i;
+          var x = document.getElementsByClassName("FrameSlides");
+          if (n > x.length) {{slideIndex = 1}}
+          if (n < 1) {{slideIndex = x.length}} ;
+          for (i = 0; i < x.length; i++) {{
+            x[i].style.display = "none";
+          }}
+          x[slideIndex-1].style.display = "block";
+        }}
+    </script>
     </body>
     </html>
     '''
@@ -196,4 +240,4 @@ def create_html(frame_num, html_fname='OutputReport.html'):
     return html_string
 
 # for local testing
-# create_html(125)
+create_html([0,20,40,60,80])

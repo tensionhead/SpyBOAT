@@ -1,4 +1,4 @@
-<tool id="SpyBOAT" name="SpyBOAT" version="0.0.1">
+<tool id="SpyBOAT" name="SpyBOAT" version="0.0.2">
     <requirements>
         <requirement type="package" version="0.0.4">spyboat</requirement>
     </requirements>

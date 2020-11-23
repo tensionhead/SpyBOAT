@@ -161,13 +161,27 @@ try:
         logger.info(f'Creating report directory {arguments.report_img_path}')
         os.mkdir(arguments.report_img_path)    
 
-    # jump to the middle of the movie
-    snapshot_frame = int(movie.shape[0]/2)
-    output_report.produce_snapshots(movie, results, snapshot_frame, Wkwargs, img_path=arguments.report_img_path)
+    # make 6 times 4 snapshots each
+    Nsnap = 6
+    NFrames = movie.shape[0]
+    # show only frames at least one Tmin
+    # away from the edge (-effects)
+    start_frame = int(Wkwargs['Tmin']/Wkwargs['dt'])        
+    
+    if (start_frame > NFrames//2):
+        logger.warning("Smallest period already is larger than half the observation time!")
+        # set to 0 in this case
+        start_frame = 0
+        
+    frame_increment = int( (NFrames - 2*start_frame) / Nsnap)
+    snapshot_frames = range(start_frame, NFrames - start_frame, frame_increment)
+
+    for snapshot_frame in snapshot_frames:  
+        output_report.produce_snapshots(movie, results, snapshot_frame, Wkwargs, img_path=arguments.report_img_path)
     
     output_report.produce_distr_plots(results, Wkwargs, img_path=arguments.report_img_path)
     
-    output_report.create_html(snapshot_frame, arguments.html_fname)
+    output_report.create_html(snapshot_frames, arguments.html_fname)
                           
     
 except FileExistsError as e:

@@ -64,12 +64,12 @@ def transform_stack(movie, dt, Tmin, Tmax, nT, T_c = None, win_size = None):
 
     if Tmax > dt * movie.shape[0]: 
         logger.warning('Warning: Very large periods chosen!')
-        logger.info('..setting Tmax to {:.2f}'.format( dt * Nt ))
-        Tmax = dt * Nt
+        Tmax = dt * (movie.shape[0]-1)
+        logger.info(f'..setting Tmax to {Tmax:.2f}')
     
     # the periods to scan for
     periods = np.linspace(Tmin, Tmax, nT)
-    
+
     # create output arrays, needs 32bit for Fiji FloatProcessor :/
     period_movie = np.zeros(movie.shape, dtype=np.float32)  
     phase_movie = np.zeros(movie.shape, dtype=np.float32)  
