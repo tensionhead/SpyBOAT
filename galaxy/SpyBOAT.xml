@@ -57,7 +57,7 @@
         argparse parser in cl_wrapper.py
         -->
 
-        <param name="gauss_sigma" type="float" label="Sigma" default=""
+        <param name="gauss_sigma" type="float" label="Sigma" 
                help="Width of the Gaussian smoothing kernel, leave blank if no pre-smoothing desired." optional="true">
             <validator type="in_range" min="0" max="9999999"/>
         </param>
