@@ -44,7 +44,7 @@
 	  --html_fname $html_out
 	  --report_img_path '$html_out.extra_files_path'
 
-          --ncpu "\${GALAXY_SLOTS:-8}"
+          --ncpu 7
           > $log
 
     ]]></command>
