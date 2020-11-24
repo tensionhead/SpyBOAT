@@ -9,7 +9,7 @@ from scipy.stats import scoreatpercentile as score
 import matplotlib.cm as cm
 from matplotlib.colors import Normalize,ListedColormap
 import matplotlib.pyplot as ppl
-import seaborn as sns
+#import seaborn as sns
 
 import grad_flux as gf
 ppl.ion()
