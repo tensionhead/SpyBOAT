@@ -117,9 +117,9 @@ def period_distr_dynamics(period_movie, Wkwargs, mask_value = -1):
             color = 'cornflowerblue')
     ax.fill_between(xvec, dis['q1'], dis['q3'], color = 'cornflowerblue',
                     alpha = 0.3)
-    ax.set_ylim( (0.6*Wkwargs['Tmin'],1.4*Wkwargs['Tmax']) )
-    ax.set_xlabel('Frame')
-    ax.set_ylabel('Period [a.u.]')
+    ax.set_ylim( (0.8*Wkwargs['Tmin'],1.2*Wkwargs['Tmax']) )
+    ax.set_xlabel('Frame Nr.', fontsize=FONT_SIZE)
+    ax.set_ylabel('Period [a.u.]', fontsize=FONT_SIZE)
     ax.grid(axis='y')
     ax.set_title("Period dynamics", fontsize=18)
 
@@ -139,7 +139,7 @@ def power_distr_dynamics(power_movie, Wkwargs, mask_value = -1):
             color = 'darkgray')
     ax.fill_between(xvec, dis['q1'], dis['q3'], color = 'darkgray',
                     alpha = 0.3)
-    ax.set_xlabel('Frame', fontsize=FONT_SIZE)
+    ax.set_xlabel('Frame Nr.', fontsize=FONT_SIZE)
     ax.set_ylabel('Power [wnp]', fontsize=FONT_SIZE)
     ax.grid(axis='y')
     ax.set_title("Wavelet Power dynamics", fontsize=FONT_SIZE)
@@ -165,7 +165,7 @@ def phase_coherence_dynamics(phase_movie, Wkwargs, mask_value = -1):
     
     ax.plot(xvec, Rs, lw = 3.5, alpha = 0.7,
             color = 'crimson')
-    ax.set_xlabel('Frame', fontsize=FONT_SIZE)
+    ax.set_xlabel('Frame Nr.', fontsize=FONT_SIZE)
     ax.set_ylabel('Phase coherence', fontsize=FONT_SIZE)
     ax.set_ylim( (-.05, 1.1) )
     ax.grid(axis='y')

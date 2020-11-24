@@ -1,10 +1,10 @@
-<tool id="SpyBOAT" name="SpyBOAT" version="0.0.2">
+<tool id="SpyBOAT" name="SpyBOAT" version="0.1.0">
     <requirements>
-        <requirement type="package" version="0.0.4">spyboat</requirement>
+        <requirement type="package" version="0.1.0">spyboat</requirement>
     </requirements>
-    <version_command>python $__tool_directory__/cl_wrapper.py --version</version_command>
+    <version_command>python $__tool_directory__/spyboat_cli.py --version</version_command>
     <command detect_errors="exit_code"><![CDATA[
-        python $__tool_directory__/cl_wrapper.py
+        python $__tool_directory__/spyboat_cli.py
           --input_path '$movie'
           #if $gauss_sigma:
              --gauss_sigma $gauss_sigma
@@ -13,8 +13,8 @@
               --rescale $rescale_factor
           #end if
 
-          #if $masking.selection_mode == "create_fixed_mask":
-	  --masking fixed
+          #if $masking.selection_mode == "create_static_mask":
+	  --masking static
           --mask_frame $masking.mask_frame
           --mask_thresh $masking.mask_thresh
           #else if $masking.selection_mode == "create_dynamic_mask":
@@ -44,7 +44,7 @@
 	  --html_fname $html_out
 	  --report_img_path '$html_out.extra_files_path'
 
-          --ncpu 7
+          --ncpu "\${GALAXY_SLOTS:-8}"
           > $log
 
     ]]></command>
@@ -54,7 +54,7 @@
 
         <!--
         The following Wavelet parameters must have the same numerical type as defined in the
-        argparse parser in cl_wrapper.py
+        argparse parser in spyboat_cli.py
         -->
 
         <param name="gauss_sigma" type="float" label="Sigma" 
@@ -71,12 +71,12 @@
         <conditional name="masking">
             <param label="Masking the output" name="selection_mode" type="select" help="Create a mask from the (blurred/rescaled) input to mask out regions without oscillations/signal in the output">
                 <option selected="true" value="no_masking">No masking</option>
-                <option value="create_fixed_mask">Create a fixed mask</option>
+                <option value="create_static_mask">Create a static mask</option>
 		<option value="create_dynamic_mask">Create a dynamic mask</option>
 	    </param>
-            <when value="create_fixed_mask">
+            <when value="create_static_mask">
                 <param name="mask_frame" type="integer" value="1" label="Create mask from frame"
-                       help="Creates a fixed mask from the chosen frame of the input movie.">
+                       help="Creates a static mask from the chosen frame of the input movie.">
                     <validator type="in_range" min="1" max="99999"/>
                 </param>
                 <param name="mask_thresh" type="float" value="0" label="Threshold"
@@ -154,7 +154,7 @@
     <help><![CDATA[
     **What it does**
 
-    Wavelet transforms a 3d-image stack (time,Y,X) pixel by pixel and extracts/evaluates the wavelet ridge. Removal of low-frequency trends is provided via sinc filtering. 
+    Wavelet transforms a 3d-image stack (time,Y,X) pixel by pixel along the time axis and extracts/evaluates the wavelet ridge. Removal of low-frequency trends is provided via sinc filtering. 
     There are four output movies generated (phase, period, amplitude and power). They have exactly the same dimensions (time,Y,X) as the (rescaled) input.
 
     Pre-smoothing of the data with Gaussian kernels is supported and often recommendable.
@@ -185,6 +185,8 @@
         Given in %, downsamples the spatial resolution of the input movie. This speeds
         up the whole analysis by a lot.
 
+    - Masking:
+       SpyBOAT offers 'static' and 'dynamic' masking. 'static' means that a single mask is created by thresholding from a user selected frame. 'dynamic' creates a mask for each frame by thresholding, works better for moving/expanding/shrinking oscillatory fields. 
     - Sampling interval:
 
         Time passed between consecutive measurements, e.g 'an image every 10 minutes'.

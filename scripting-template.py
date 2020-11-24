@@ -10,39 +10,35 @@ LogLevel = 'INFO' # set to 'WARNING' to turn off info event logging
 spyboat.util.logger.setLevel(LogLevel)
 spyboat.processing.logger.setLevel(LogLevel)
 
-## included test data
+## included test data, two sinusoids with slightly
+## different period on rectangular domains
 ## note the stack ordering is [time, Y, X]
 
-# test_movie = datasets.SCN_Evans2013
-# dt = 0.5 # sampling interval, it's half an hour here
-
-## uncomment to analyze very small synthetic movie
-test_movie = datasets.two_sines
+movie = datasets.two_sines
 dt = 2 # sampling interval, it's 2 hours for two_sines
 
 ## top open a local file just use skimage's io:
 # io.imread('/path/to/my_awesome_movie.tif')
 
-
 ## analysis parameters
 Wkwargs = {'dt' : dt, # sampling interval
            'Tmin' : 20, # lowest period to scan, in hours
            'Tmax' : 30, # highest period to scan, in hours          
-           'nT' : 200,   # number of periods/transforms
-           'T_c' : 40,  # sinc cut off period, in hours, None disables detrending
-           'win_size' : None}   # Ampl. normalization sliding window size, None disables
+           'nT' : 200,  # number of periods/transforms
+           'T_c' : 40, # sinc cut off period, in hours, None disables detrending
+           'win_size' : None} # Ampl. normalization sliding window size, None disables
 
 # down sample to 80% of original size
-input_movie = spyboat.down_sample(test_movie, 0.8)
+input_movie = spyboat.down_sample(movie, 0.8)
 
 # gaussian blur
-input_movie = spyboat.gaussian_blur(input_movie, sigma = 2.5)
+input_movie = spyboat.gaussian_blur(input_movie, sigma = 3)
 
-# create a fixed mask from frame 20
-mask2d = spyboat.create_fixed_mask(input_movie, frame = 20, threshold = 10)
-# create a dynamic mask 
+# create a static mask from frame 20
+mask2d = spyboat.create_static_mask(input_movie, frame = 20, threshold = 10)
+
+# create a dynamic mask, different for each frame
 mask3d = spyboat.create_dynamic_mask(input_movie, threshold = 10)
-
 
 # how many jobs
 n_cpu = 10

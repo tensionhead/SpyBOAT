@@ -104,7 +104,7 @@ def create_html(frame_nums, html_fname='OutputReport.html'):
     for frame_num in frame_nums:
         new_gal =f'''
         <div class="FrameSlides"> 
-        <h2 style="text-align:center"> Frame {frame_num} </h2>
+        <h3 style="text-align:center; color=#363333"> Frame Nr. {frame_num} </h3>
 
             <div class="snapshot_gallery">
 
@@ -151,7 +151,7 @@ def create_html(frame_nums, html_fname='OutputReport.html'):
             text-align: center;
             /* border: 1px dashed rgba(4, 4, 4, 0.35);     */
             grid-template-columns: repeat(3,1fr);
-            grid-template-rows: 25vw;    
+            grid-template-rows: 20vw;    
             grid-gap: 0px;
             column-gap: 0px
         }}
@@ -177,11 +177,16 @@ def create_html(frame_nums, html_fname='OutputReport.html'):
             height: 100%;
             object-fit: contain;
         }}
+        .subheader{{
+             text-align:center;
+             font-size: 160%;
+             color:#363333;}}
      </style>
     </head>
     <body>
-    <h1 style="text-align:center">SpyBOAT Results Report</h1>
+    <h1 style="text-align:center; color:#363333">SpyBOAT Results Report</h1>
     <hr style="width:50%"> 
+    <h1 class="subheader"> Distribution Dynamics </h1>
     <div class="distr_gallery">
        <figure class=”distr_gallery__item distr_gallery__item--1">
          <img src="period_distr.png" alt="Period" class="distr_gallery__img">
@@ -197,7 +202,8 @@ def create_html(frame_nums, html_fname='OutputReport.html'):
 
     </div>
 
-    <h1 style="text-align:center"> Snapshots </h2>
+    <h1 class="subheader"> Output Movie Snapshots </h1>
+
     <!-- trigger the javascript at the end--->
     <div class="center">
         <button class="w3-button" onclick="plusDivs(-1)">&#10094; Prev</button>
@@ -240,4 +246,4 @@ def create_html(frame_nums, html_fname='OutputReport.html'):
     return html_string
 
 # for local testing
-create_html([0,20,40,60,80])
+# create_html([0,20,40,60,80])

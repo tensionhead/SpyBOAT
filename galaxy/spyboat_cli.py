@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-## Gets interfaced by Galaxy or bash scripting
+## Gets interfaced by Galaxy or can be used for bash scripting
 import argparse
 import sys, os
 import logging
@@ -49,10 +49,10 @@ parser.add_argument('--win_size', help='Sliding window size for amplitude normal
                     required=False, type=float)
 
 # Optional masking
-parser.add_argument('--masking', help="Set to either 'dynamic', 'fixed' or 'None' which is the default", default='None', required=False, type=str)
+parser.add_argument('--masking', help="Set to either 'dynamic', 'static' or 'None' which is the default", default='None', required=False, type=str)
 
 parser.add_argument('--mask_frame',
-                    help="The frame of the input movie to create a fixed mask from, needs masking set to 'fixed'",
+                    help="The frame of the input movie to create a static mask from, needs masking set to 'static'",
                     required=False, type=int)
 
 
@@ -60,13 +60,13 @@ parser.add_argument('--mask_thresh', help='The threshold of the mask, all pixels
                     required=False, type=float,
                     default=0)
 
-# output overview/snapshots
+# output html report/snapshots
 parser.add_argument('--html_fname', help="Name of the html report.",
                     default='OutputReport.html', required=False, type=str)
 
-parser.add_argument('--report_img_path', help="For the html report, can be set in Galaxy. Defaults to cwd.", default='.', required=False, type=str)
+parser.add_argument('--report_img_path', help="For the html report, to be set in Galaxy. Without galaxy leave at cwd!", default='.', required=False, type=str)
 
-parser.add_argument('--version', action='version', version='0.0.1')
+parser.add_argument('--version', action='version', version='0.1.0')
 
 arguments = parser.parse_args()
 
@@ -110,9 +110,9 @@ else:
 # ----- Set up Masking before processing ----
 
 mask = None
-if arguments.masking == 'fixed':
+if arguments.masking == 'static':
     if not arguments.mask_frame:
-        logger.critical("Frame number for fixed masking is missing!")
+        logger.critical("Frame number for static masking is missing!")
         sys.exit(1)
 
     if (arguments.mask_frame > movie.shape[0]) or (arguments.mask_frame < 0):
@@ -120,8 +120,8 @@ if arguments.masking == 'fixed':
         sys.exit(1)
 
     else:
-        logger.info(f'Creating fixed mask from frame {arguments.mask_frame} with threshold {arguments.mask_thresh}')  
-        mask = spyboat.create_fixed_mask(movie, arguments.mask_frame,
+        logger.info(f'Creating static mask from frame {arguments.mask_frame} with threshold {arguments.mask_thresh}')  
+        mask = spyboat.create_static_mask(movie, arguments.mask_frame,
                                          arguments.mask_thresh)
 elif arguments.masking == 'dynamic':
     logger.info(f'Creating dynamic mask with threshold {arguments.mask_thresh}')
@@ -140,7 +140,8 @@ Wkwargs = {'dt': arguments.dt,
            'win_size' : arguments.win_size # defaults to None          
 }
 
-# start parallel processing
+# --- start parallel processing ---
+
 results = spyboat.run_parallel(movie, arguments.ncpu, **Wkwargs)
 
 # --- masking? ---
@@ -151,10 +152,10 @@ if mask is not None:
         logger.info(f'Masking {key}')
         spyboat.apply_mask(results[key], mask, fill_value=-1)
 
-# --- Produce Output Report Figures/png's ---
+# --- Produce Output HTML Report Figures/png's ---
 
 # create the directory, yes we have to do that ourselves :)
-# galaxy then magically renders the  html from that
+# galaxy then magically renders the  html from that directory
 try:
 
     if arguments.report_img_path != '.':
@@ -183,7 +184,6 @@ try:
     
     output_report.create_html(snapshot_frames, arguments.html_fname)
                           
-    
 except FileExistsError as e:
     logger.critical(f"Could not create html report directory: {repr(e)}")
 

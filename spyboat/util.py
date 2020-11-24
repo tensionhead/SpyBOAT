@@ -202,7 +202,7 @@ def gaussian_blur(movie, sigma):
 
 # --- Masking ---
 
-def create_fixed_mask(movie, frame, threshold):
+def create_static_mask(movie, frame, threshold):
 
     '''
     This is a convenience function to create 
@@ -307,7 +307,7 @@ def apply_mask(movie, mask, fill_value = -1):
 
     movie : ndarray with ndim = 3, 1st axis is time
     mask : boolean array, holds True for masked pixels
-           can both be of ndim=2 for fixed, and ndim=3
+           can both be of ndim=2 for static, and ndim=3
            for dynamic masks
     fill_value : float, all masked pixels get set to this value
     
@@ -317,7 +317,7 @@ def apply_mask(movie, mask, fill_value = -1):
     # dynamic 3d mask, different for every frame
     if mask.shape == movie.shape:
         movie[mask] = fill_value
-    # fixed 2d mask
+    # static 2d mask
     elif mask.shape == movie.shape[1:]:
         movie[:,mask] = fill_value
     else:
