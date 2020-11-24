@@ -16,7 +16,7 @@ A snapshot of a typical output of the pipeline might look like this:
 
 From left to right: Intensity of the blurred and down-sampled input; Phasefield; Periods and Amplitude 
 
-This is the complete 2D-analogue to the results for univariate time-series provided by pyBOAT.
+This is the complete 3D-analogue to the results for univariate time-series provided by pyBOAT.
 
 ## General Usage Tips 
 
@@ -31,7 +31,7 @@ of the time-frequency analysis:
  - amplitude normalization window size (optional)
  - sampling interval 
  
- before starting the computationally costly 2D stack transforms with SpyBOAT. 
+ before starting the computationally costly 3D stack transforms with SpyBOAT. 
 
 
 ### Spatial downsampling and smoothing
@@ -63,7 +63,8 @@ masking.
 
 ### For Server Admins: Installing SpyBOAT as a Galaxy Tool
 
-See the ```/galaxy``` folder.
+See the ```/galaxy``` folder. There is a ```run_tests.sh```
+which produces all the outputs in the cwd. 
 
 ## Python scripting interface
 
@@ -79,7 +80,3 @@ conda install spyboat
 ```
 The ```scripting-template.py``` in the root of this repository
 showcases the analysis with the example ```spyboat.datasets```.
-
-
-
-
