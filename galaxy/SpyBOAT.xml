@@ -44,10 +44,11 @@
 	  --html_fname $html_out
 	  --report_img_path '$html_out.extra_files_path'
 
-          --ncpu "\${GALAXY_SLOTS:-8}"
+          --ncpu 7 
           > $log
 
-    ]]></command>
+	  ]]></command>
+    <!-- --ncpu "\${GALAXY_SLOTS:-8}" -->
     <inputs>
         <param name="movie" type="data" format="tiff" label="Movie to process"
                help="Select a movie to Wavelet process"/>

@@ -10,7 +10,7 @@ margins = {'left' : 0.01, 'right':0.95, 'top':0.94, 'bottom':0.01}
 
 FONT_SIZE = 18
 
-def phase_snapshot(snapshot):
+def phase_snapshot(snapshot, title='Phase'):
 
     cmap = ppl.get_cmap("bwr")
     cmap.set_under("gray")
@@ -23,13 +23,13 @@ def phase_snapshot(snapshot):
     # looks better, but you don't get the values by hovering over the plot
     # cb.set_ticklabels(['0', '$\pi/2$', '$\pi$', '$3/4 \pi$','$2\pi$'])
     ax.axis("off")
-    ax.set_title("Phase", fontsize=18)
+    ax.set_title(title, fontsize=18)
     fig.subplots_adjust(**margins)
 
     return ax
 
 
-def period_snapshot(snapshot, Wkwargs, time_unit="h"):
+def period_snapshot(snapshot, Wkwargs, title='Period', time_unit="a.u."):
     
     Tmin = Wkwargs['Tmin']
     Tmax = Wkwargs['Tmax']
@@ -43,14 +43,18 @@ def period_snapshot(snapshot, Wkwargs, time_unit="h"):
     cb = ppl.colorbar(im, shrink=0.9, ax=ax)
     cb.set_label(f"Period [{time_unit}]")
     ax.axis("off")
-    ax.set_title("Period", fontsize=18)
+    ax.set_title(title, fontsize=FONT_SIZE)
     fig.subplots_adjust(**margins)
     
     return ax
 
 
-def amplitude_snapshot(snapshot, unit="a.u."):
+def amplitude_snapshot(snapshot, title='Amplitude', unit="a.u."):
 
+    '''
+    Pretty generic, could also be used for the power movie
+    '''
+    
     cmap = ppl.get_cmap("copper")
     cmap.set_under("gray")
     fig, ax = ppl.subplots()
@@ -60,12 +64,12 @@ def amplitude_snapshot(snapshot, unit="a.u."):
     cb = ppl.colorbar(im, shrink=0.9, ax=ax)
     cb.set_label(f"Amplitude [{unit}]")
     ax.axis("off")
-    ax.set_title("Amplitude", fontsize=18)
+    ax.set_title(title, fontsize=FONT_SIZE)
     fig.subplots_adjust(**margins)
 
     return ax
 
-def input_snapshot(snapshot, unit = 'a.u'):
+def input_snapshot(snapshot, title='Input', unit='a.u'):
 
     # input movie snapshot
     fig, ax = ppl.subplots()
@@ -73,7 +77,7 @@ def input_snapshot(snapshot, unit = 'a.u'):
     cb = ppl.colorbar(im, shrink=0.9, ax=ax)
     cb.set_label(f'Intensity [{unit}]')
     ppl.axis('off')
-    ax.set_title("Input", fontsize=18)
+    ax.set_title(title, fontsize=FONT_SIZE)
     fig.subplots_adjust(**margins)
 
     return ax
@@ -82,6 +86,7 @@ def input_snapshot(snapshot, unit = 'a.u'):
 def compute_distr_dynamics(movie, mask_value = -1):
 
     '''
+    Calculates median and quartiles for every frame.
     Adheres to spyboats stack ordering: (Frames,Y,X)
     and skips over pixels with the *mask_value*.
     '''
@@ -115,9 +120,15 @@ def period_distr_dynamics(period_movie, Wkwargs, mask_value = -1):
     
     ax.plot(xvec, dis['median'], lw = 2.5, alpha = 0.9,
             color = 'cornflowerblue')
-    ax.fill_between(xvec, dis['q1'], dis['q3'], color = 'cornflowerblue',
+    ax.fill_between(xvec, dis['q1'], dis['q3'], color='cornflowerblue',
                     alpha = 0.3)
-    ax.set_ylim( (0.8*Wkwargs['Tmin'],1.2*Wkwargs['Tmax']) )
+    ax.plot(xvec, np.ones_like(xvec)* Wkwargs['Tmin'],
+            '--', lw=1.5, c='#3f939e')
+    ax.plot(xvec, np.ones_like(xvec)* Wkwargs['Tmax'],
+            '--', lw=1.5, c='#3f939e',label='Tmin, Tmax')
+    # ax.legend(fontsize=FONT_SIZE-2)
+    
+    ax.set_ylim( (0.95*Wkwargs['Tmin'],1.05*Wkwargs['Tmax']) )
     ax.set_xlabel('Frame Nr.', fontsize=FONT_SIZE)
     ax.set_ylabel('Period [a.u.]', fontsize=FONT_SIZE)
     ax.grid(axis='y')

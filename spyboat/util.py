@@ -89,7 +89,7 @@ def open_tif(fname):
 
 # ---- Output -----------------------------------------------
 
-def save_to_tifs(results, input_name, directory):
+def save_to_tifs(results, input_name, directory = '.'):
 
     '''
     This is just a convenience function to save out
@@ -97,10 +97,10 @@ def save_to_tifs(results, input_name, directory):
 
     It will write four tifs to disc:
 
-    *directory*/phase_*input_name*.tif
-    *directory*/period_*input_name*.tif
-    *directory*/power_*input_name*.tif
-    *directory*/amplitude_*input_name*.tif
+    *directory*/*input_name*_phase.tif
+    *directory*/*input_name*_period.tif
+    *directory*/*input_name*_power.tif
+    *directory*/*input_name*_*input_name*.tif
 
     Parameters
     ----------
@@ -110,24 +110,25 @@ def save_to_tifs(results, input_name, directory):
 
     input_name : str, the common name (of the experiment/sample..)
     directory : str, the target directory
+                defaults to cwd
     '''
     # save phase movie
-    out_path = path.join(directory, f'phase_{input_name}.tif')
+    out_path = path.join(directory, f'{input_name}_phase.tif')
     io.imsave(out_path, results['phase'], plugin="tifffile")
     logger.info(f'Written {out_path}')
 
     # save period movie
-    out_path = path.join(directory, f'period_{input_name}.tif')
+    out_path = path.join(directory, f'{input_name}_period.tif')
     io.imsave(out_path, results['period'], plugin="tifffile")
     logger.info(f'Written {out_path}')    
     
     # save power movie
-    out_path = path.join(directory, f'power_{input_name}.tif')
+    out_path = path.join(directory, f'{input_name}_power.tif')
     io.imsave(out_path, results['power'], plugin="tifffile")
     logger.info(f'Written {out_path}')    
 
     # save amplitude movie
-    out_path = path.join(directory, f'amplitude_{input_name}.tif')
+    out_path = path.join(directory, f'{input_name}_amplitude.tif')
     io.imsave(out_path, results['amplitude'], plugin="tifffile")
     logger.info(f'Written {out_path}')    
     
