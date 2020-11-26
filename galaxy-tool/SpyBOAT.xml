@@ -1,6 +1,11 @@
-<tool id="SpyBOAT" name="SpyBOAT" version="0.1.1">
+<tool id="spyboat" name="SpyBOAT" version="@TOOL_VERSION@">
+<description>wavelet transforms image stacks</description>
+  <macros>
+    <token name="@TOOL_VERSION@">0.1.1</token>
+  </macros>
+  
     <requirements>
-        <requirement type="package" version="0.1.1">spyboat</requirement>
+      <requirement type="package" version="@TOOL_VERSION@">spyboat</requirement>
     </requirements>
     <version_command>python $__tool_directory__/spyboat_cli.py --version</version_command>
     <command detect_errors="exit_code"><![CDATA[
