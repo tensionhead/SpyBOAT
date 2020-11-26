@@ -12,7 +12,7 @@ import spyboat
 import output_report
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, force=True)
-logger = logging.getLogger('wrapper')
+logger = logging.getLogger('spyboat-cli')
 
 # ----------command line parameters ---------------
 
@@ -79,9 +79,10 @@ try:
     movie = spyboat.open_tif(arguments.input_path)
 except FileNotFoundError:
     logger.critical(f"Couldn't open {arguments.input_path}, check movie storage directory!")
-
     sys.exit(1)
-
+# problems get logged in 'open_tif'
+if movie is None:
+    sys.exit(1)
 # -------- Do (optional) spatial downsampling ---------------------------
 
 scale_factor = arguments.rescale
@@ -162,8 +163,8 @@ try:
         logger.info(f'Creating report directory {arguments.report_img_path}')
         os.mkdir(arguments.report_img_path)    
 
-    # make 6 times 4 snapshots each
-    Nsnap = 6
+    # 4 snapshots each
+    Nsnap = 7
     NFrames = movie.shape[0]
     # show only frames at least one Tmin
     # away from the edge (-effects)

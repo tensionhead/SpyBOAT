@@ -48,7 +48,7 @@ def produce_snapshots(input_movie, results, frame, Wkwargs,
     ppl.close(fig)
 
     spyplot.period_snapshot(results['period'][frame],
-                            Wkwargs,
+                            Wkwargs['Tmin'],Wkwargs['Tmax'],
                             time_unit = 'a.u.')
     
     fig = ppl.gcf()
@@ -130,6 +130,7 @@ def create_html(frame_nums, html_fname='OutputReport.html'):
     
     html_string =f'''
     <html>
+    <!-- this file got automatically created by 'output_report.py' -->
     <title>SpyBOAT Output Report</title>
     <head>
         <!-- that doesn't work with galaxy.. -->

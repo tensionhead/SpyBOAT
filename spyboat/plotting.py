@@ -29,11 +29,8 @@ def phase_snapshot(snapshot, title='Phase'):
     return ax
 
 
-def period_snapshot(snapshot, Wkwargs, title='Period', time_unit="a.u."):
+def period_snapshot(snapshot, Tmin, Tmax, title='Period', time_unit="a.u."):
     
-    Tmin = Wkwargs['Tmin']
-    Tmax = Wkwargs['Tmax']
-
     cmap = ppl.get_cmap("magma_r")
     cmap.set_under("gray")
     fig, ax = ppl.subplots()
@@ -49,7 +46,8 @@ def period_snapshot(snapshot, Wkwargs, title='Period', time_unit="a.u."):
     return ax
 
 
-def amplitude_snapshot(snapshot, title='Amplitude', unit="a.u."):
+def amplitude_snapshot(snapshot, vmax=None,
+                       title='Amplitude', unit="a.u."):
 
     '''
     Pretty generic, could also be used for the power movie
@@ -59,10 +57,10 @@ def amplitude_snapshot(snapshot, title='Amplitude', unit="a.u."):
     cmap.set_under("gray")
     fig, ax = ppl.subplots()
 
-    im = ax.imshow(snapshot, vmin=0, cmap=cmap)
+    im = ax.imshow(snapshot, vmin=0, vmax=vmax, cmap=cmap)
 
     cb = ppl.colorbar(im, shrink=0.9, ax=ax)
-    cb.set_label(f"Amplitude [{unit}]")
+    cb.set_label(f"{title} [{unit}]")
     ax.axis("off")
     ax.set_title(title, fontsize=FONT_SIZE)
     fig.subplots_adjust(**margins)

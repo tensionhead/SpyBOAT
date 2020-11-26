@@ -1,6 +1,6 @@
-<tool id="SpyBOAT" name="SpyBOAT" version="0.1.0">
+<tool id="SpyBOAT" name="SpyBOAT" version="0.1.1">
     <requirements>
-        <requirement type="package" version="0.1.0">spyboat</requirement>
+        <requirement type="package" version="0.1.1">spyboat</requirement>
     </requirements>
     <version_command>python $__tool_directory__/spyboat_cli.py --version</version_command>
     <command detect_errors="exit_code"><![CDATA[
@@ -44,14 +44,14 @@
 	  --html_fname $html_out
 	  --report_img_path '$html_out.extra_files_path'
 
-          --ncpu 7 
+          --ncpu "\${GALAXY_SLOTS:-8}"
           > $log
 
 	  ]]></command>
-    <!-- --ncpu "\${GALAXY_SLOTS:-8}" -->
+    <!-- "\${GALAXY_SLOTS:-8}" -->
     <inputs>
-        <param name="movie" type="data" format="tiff" label="Movie to process"
-               help="Select a movie to Wavelet process"/>
+        <param name="movie" type="data" format="tiff" label="Movie to analyze"
+               help="Select a movie to wavelet analyze"/>
 
         <!--
         The following Wavelet parameters must have the same numerical type as defined in the
@@ -96,12 +96,12 @@
         <param name="dt" type="float" value="1" label="Sampling interval" help="Time span between two frames">
             <validator type="in_range" min="0" max="9999999"/>
         </param>
-        <param name="tmin" type="float" value="2" label="Smallest period" help="Minimal period to scan for">
+        <param name="tmin" type="float" value="20" label="Smallest period" help="Lowest period for the wavelet transform">
             <validator type="in_range" min="0" max="9999999"/>
         </param>
 
         <param name="tmax" type="float" value="30" label="Largest period"
-               help="Maximal period to scan for">
+               help="Largest period for the wavelet transform">
             <validator type="in_range" min="0" max="9999999"/>
         </param>
 
@@ -130,22 +130,22 @@
     </inputs>
 
     <outputs>
-        <data name="phase_out" format="tiff" label="phase_${movie.name}"/>
-        <data name="period_out" format="tiff" label="period_${movie.name}"/>
-        <data name="power_out" format="tiff" label="power_${movie.name}"/>
-        <data name="amplitude_out" format="tiff" label="amplitude_${movie.name}"/>
-	<data name="preprocessed_out" format="tiff" label="preproc_${movie.name}">
+        <data name="phase_out" format="tiff" label="${movie.name[:-4]}_phase"/>
+        <data name="period_out" format="tiff" label="${movie.name[:-4]}_period"/>
+        <data name="power_out" format="tiff" label="${movie.name[:-4]}_power"/>
+        <data name="amplitude_out" format="tiff" label="${movie.name[:-4]}_amplitude"/>
+	<data name="preprocessed_out" format="tiff" label="${movie.namee[:-4]}_preproc">
 	  <filter>save_preprocessed['selection'] == 'Yes'</filter>
 	</data>
 	
-        <data name="log" format="txt" label="log_${movie.name}.txt"/>
-	<data format="html" name="html_out" label="Report_${movie.name}"/>
+        <data name="log" format="txt" label="log ${movie.name[:-4]}.txt"/>
+	<data format="html" name="html_out" label="Report ${movie.name[:-4]}"/>
 
     </outputs>
 
     <tests>
         <test>
-            <param name="movie" value="test_movie.tif" ftype="tiff"/>
+            <param name="movie" value="test-movie.tif" ftype="tiff"/>
             <output name="phase_out" file="phase_out.tif" ftype="tiff" compare="sim_size"/>
             <output name="period_out" file="period_out.tif" ftype="tiff" compare="sim_size"/>
             <output name="power_out" file="power_out.tif" ftype="tiff" compare="sim_size"/>

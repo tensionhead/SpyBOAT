@@ -16,7 +16,7 @@ spyboat.processing.logger.setLevel(LogLevel)
 # movie = datasets.two_sines
 # dt = 2 # it's 2 hours for two_sines
 
-## SCN Bmal1 recording from Jhiwan..
+## SCN Bmal1 recording from Jihwan..
 movie = datasets.SCN_Bmal1
 dt = 1 # 1h sampling
 
@@ -38,7 +38,7 @@ input_movie = spyboat.down_sample(movie, 0.8)
 input_movie = spyboat.gaussian_blur(input_movie, sigma = 1.5)
 
 # create a static mask from frame 47
-mask2d = spyboat.create_static_mask(input_movie, frame = 47, threshold = 300)
+mask2d = spyboat.create_static_mask(input_movie, frame = 47, threshold = 320)
 
 # create a dynamic mask, different for each frame but fixed threshold
 mask3d = spyboat.create_dynamic_mask(input_movie, threshold = 10)
@@ -56,14 +56,14 @@ for key in results:
     spyboat.apply_mask(results[key], mask2d, fill_value = -1)
 
 # snapshots at frame..
-frame = 50
+frame = 23
 
 # look at a phase snapshot
 spyplot.phase_snapshot(results['phase'][frame])
 
 # look at a period snapshot
 spyplot.period_snapshot(results['period'][frame],
-                        Wkwargs,
+                        Wkwargs['Tmin'], Wkwargs['Tmax'],
                         time_unit = 'h')
 
 # look at an amplitude snapshot
@@ -77,10 +77,10 @@ spyplot.period_distr_dynamics(results['period'], Wkwargs)
 spyplot.power_distr_dynamics(results['power'], Wkwargs)
 spyplot.phase_coherence_dynamics(results['phase'], Wkwargs)
 
-base_name = 'example_movie'
+base_name = 'SCN_Bmal1'
 
 # save out results to current working directory
-spyboat.save_to_tifs(results, base_name, directory = os.getcwd())
+spyboat.save_results_to_tifs(results, base_name, directory = '.')
 
 # save out the scaled and blurred input movie for
 # direct comparison to results and coordinate mapping etc.

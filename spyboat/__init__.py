@@ -4,7 +4,7 @@
 __version__ = '0.1.1'
 
 # io
-from .util import open_tif, save_to_tifs
+from .io import open_tif, save_results_to_tifs, open_results
 # pre-processing
 from .util import down_sample, gaussian_blur
 # post-processing
