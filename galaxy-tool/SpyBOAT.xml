@@ -80,6 +80,8 @@
                 <option value="create_static_mask">Create a static mask</option>
 		<option value="create_dynamic_mask">Create a dynamic mask</option>
 	    </param>
+            <when value="no_masking">
+	    </when>
             <when value="create_static_mask">
                 <param name="mask_frame" type="integer" value="1" label="Create mask from frame"
                        help="Creates a static mask from the chosen frame of the input movie.">
@@ -131,6 +133,11 @@
                 <option selected="true" value="No">No</option>
                 <option value="Yes">Yes</option>
 	    </param>
+	    <!-- there is an output filter picking up the choice -->
+	    <when value="No">
+	    </when>
+	    <when value="Yes">
+	    </when>	    
 	</conditional>
     </inputs>
 
