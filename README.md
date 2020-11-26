@@ -12,7 +12,7 @@ four output movies:
 
 A snapshot of a typical output of the pipeline might look like this:
 
-<img src="./doc/SpyBOATexample.png" alt="drawing" width="1350"/>
+<img src="./doc/SpyBOATexample_Jihwan.png" alt="drawing" width="1350"/>
 
 From left to right: Intensity of the blurred and down-sampled input; Phasefield; Periods and Amplitude 
 
