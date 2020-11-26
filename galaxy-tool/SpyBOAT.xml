@@ -221,5 +221,16 @@
         advantage is that signal with strong amplitude trends will have more
 	meaningful Wavelet powers after normalization.
 
-    ]]></help>
+	]]></help>
+    <citations>
+
+     <citation type="bibtex"> @article{monke2020optimal,
+  title={Optimal time frequency analysis for biological data-pyBOAT},
+  author={M{\"o}nke, Gregor and Sorgenfrei, Frieda A and Schmal, Christoph and Granada, Adri{\'a}n E},
+  journal={bioRxiv},
+  year={2020},
+  publisher={Cold Spring Harbor Laboratory}
+}      
+   </citation>
+ </citations>
 </tool>
