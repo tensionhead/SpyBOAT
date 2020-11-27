@@ -12,7 +12,7 @@ four output movies:
 
 A snapshot of a typical output of the pipeline might look like this:
 
-<sub>example data graciously provided by Jihwan Myung, GIMBC Taipei Medical University</sub>
+<sub>Example data graciously provided by Jihwan Myung, GIMBC Taipei Medical University</sub>
 
 <img src="./doc/SpyBOATexample_Jihwan.png" alt="drawing" width="1350"/>
       
