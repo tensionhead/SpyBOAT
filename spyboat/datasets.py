@@ -10,7 +10,9 @@ data_dir = os.path.join(os.path.dirname(__file__),'test_data')
 # different periods
 two_sines = io.imread( os.path.join(data_dir, 'two_sines.tif'))
 
-# SCN Bmal1 recording from Jhiwan, subsampled in time and space
+# Example data graciously provided by Jihwan Myung,
+# GIMBC Taipei Medical University
+# SCN Bmal1 recording, subsampled in time and space
 SCN_Bmal1 = io.imread( os.path.join(data_dir, 'BmalLD-ssds.tif'))
 
 
