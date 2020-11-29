@@ -164,9 +164,9 @@ try:
     if arguments.report_img_path != '.':
         logger.info(f'Creating report directory {arguments.report_img_path}')
         os.mkdir(arguments.report_img_path)
-    
-        # 4 snapshots each
-    Nsnap = 7
+
+    # 4 figures per snapshot
+    Nsnap = 8
     NFrames = movie.shape[0]
     # show only frames at least one Tmin
     # away from the edge (-effects)
@@ -186,7 +186,7 @@ try:
         if 'out' in arg or 'path' in arg or 'html' in arg:
             continue
         par_str += f'{arg} -> {getattr(arguments, arg)}\n'
-    
+
     for snapshot_frame in snapshot_frames:
         output_report.produce_snapshots(movie, results, snapshot_frame, Wkwargs, img_path=arguments.report_img_path)
 

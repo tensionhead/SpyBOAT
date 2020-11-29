@@ -133,7 +133,7 @@ def create_html(frame_nums, par_str, html_fname="OutputReport.html"):
         galleries += new_gal
 
     parameter_cells = ''
-    for line in par_str.split('\n'):        
+    for line in par_str.split('\n'):
         # last str is empty..
         if not line:
             break
@@ -143,7 +143,7 @@ def create_html(frame_nums, par_str, html_fname="OutputReport.html"):
               <td>{par_name}</td>
               <td>{par_val}</td>
             </tr>'''
-        
+
     html_string = f"""
     <html>
     <!-- this file got automatically created by 'output_report.py' -->
@@ -228,7 +228,7 @@ def create_html(frame_nums, par_str, html_fname="OutputReport.html"):
     <div class="div_distr">
       <img src="period_distr.png" alt="Period"
        class="centerimg">
-      <p> Median and quartiles of the detected periods for each frame </p>
+      <p> Median and quartiles of the estimated periods for each frame </p>
     </div>
 
 
@@ -240,7 +240,7 @@ def create_html(frame_nums, par_str, html_fname="OutputReport.html"):
     <div class="div_distr">
       <img src="phase_distr.png" alt="Period"
        class="centerimg">
-      <p> Kuramoto order parameter for each frame </p>
+      <p> Kuramoto order parameter for the phases estimated for each frame </p>
 
     </div>
 
