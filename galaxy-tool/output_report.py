@@ -141,7 +141,7 @@ def create_html(frame_nums, html_fname="OutputReport.html"):
         <!--link rel="stylesheet" href="styles.css"-->
       <style type="text/css">
         body{{ margin:10 100; background:whitesmoke; }}
-	p{{
+p{{
            text-align: center;
            margin-top: 0.05cm;
            margin-bottom: .05cm;
@@ -177,18 +177,18 @@ def create_html(frame_nums, html_fname="OutputReport.html"):
         .centerimg{{
             text-align: center;
             width: 65%;
-	    display: block;
-	    padding: 10px;
+        display: block;
+        padding: 10px;
             margin-left: auto;
             margin-right: auto;
-	}}
+    }}
 
-	.div_distr{{
+    .div_distr{{
             border-radius: 25px;
-	    margin-top: 1cm;
-	    margin-bottom: 0cm;
-	    background-color: #cce1e3;
-	}}
+        margin-top: 1cm;
+        margin-bottom: 0cm;
+        background-color: #cce1e3;
+    }}
 
      </style>
     </head>
@@ -197,21 +197,21 @@ def create_html(frame_nums, html_fname="OutputReport.html"):
     <hr style="width:70%">
     <h1 class="subheader"> Spatial Summary Statistics </h1>
     <div class="div_distr">
-      <img src="period_distr.png" alt="Period" 
-	   class="centerimg">
-      <p> Median and quartiles of the detected periods for each frame </p>      
+      <img src="period_distr.png" alt="Period"
+       class="centerimg">
+      <p> Median and quartiles of the detected periods for each frame </p>
     </div>
 
-    
+
     <div class="div_distr">
-      <img src="power_distr.png" alt="Period" 
-	   class="centerimg">
-      <p> Median and quartiles of the ridge wavelet power for each frame </p>      
+      <img src="power_distr.png" alt="Period"
+       class="centerimg">
+      <p> Median and quartiles of the ridge wavelet power for each frame </p>
     </div>
     <div class="div_distr">
-      <img src="phase_distr.png" alt="Period" 
-	   class="centerimg">
-      <p> Kuramoto order parameter for each frame </p>      
+      <img src="phase_distr.png" alt="Period"
+       class="centerimg">
+      <p> Kuramoto order parameter for each frame </p>
 
     </div>
 
