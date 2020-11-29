@@ -1,5 +1,9 @@
 ## Notes for setting up the SpyBOAT Galaxy tool
 
+### Tool xml specs
+
+- https://docs.galaxyproject.org/en/latest/dev/schema.html
+
 ### Local testing
 
 - clone recent Galaxy repo from https://galaxyproject.org/admin/get-galaxy/
