@@ -177,17 +177,22 @@ p{{
         .centerimg{{
             text-align: center;
             width: 65%;
-        display: block;
-        padding: 10px;
+            max-width: 400px;
+            display: block;
+            padding: 10px;
             margin-left: auto;
             margin-right: auto;
     }}
 
     .div_distr{{
-            border-radius: 25px;
+        text-align: center;
+        border-radius: 25px;
         margin-top: 1cm;
-        margin-bottom: 0cm;
+        margin: auto;
+        margin-bottom: 0.5cm;
         background-color: #cce1e3;
+        max-width: 550px;
+
     }}
 
      </style>
