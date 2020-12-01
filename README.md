@@ -67,12 +67,13 @@ masking.
 
 ## Galaxy Web Server
 
-*Soon..!*
+SpyBOAT is ready for use on the [imaging.usegalaxy.eu platform](https://usegalaxy.eu/root?tool_id=/spyboat), you don't even need a login to try it out!
 
 ### For Server Admins: Installing SpyBOAT as a Galaxy Tool
 
-See the ```/galaxy``` folder. There is a ```run_tests.sh```
-which produces all the outputs in the cwd. 
+SpyBOAT is available in the [toolshed](https://toolshed.g2.bx.psu.edu/view/iuc/spyboat/639d2031d998),
+so it can be easily installed on your Galaxy instance. You can also directly see the ```/galaxy-tool``` folder. 
+There is a ```run_tests.sh``` which produces all SpyBOAT outputs in the cwd. 
 
 ## Python scripting interface
 
