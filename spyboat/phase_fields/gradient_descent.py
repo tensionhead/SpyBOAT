@@ -32,8 +32,8 @@ def instructions(vy, vx):
     #  'right','right_up', 'up', 'left_up', 'left'])
     directions = np.array([(-1,0),(-1, -1),(0, -1), (+1, -1),\
     (+1, 0), (+1, +1), (0, +1), (-1, +1), (-1, 0)])
-
-    instruction = directions[np.where(crawl_angle<angle_boxes)][0]
+    box_index = np.where(crawl_angle<angle_boxes)][0][0]
+    instruction = directions[box_index]
 
     return instruction
 
@@ -99,14 +99,5 @@ plt.plot(xs,ys, c = 'k', lw = 2, marker = 'o')
 
 
 
-
-
-
-
-
-
-    #     In [25]: for x in np.random.randint(low=-180, high=180, size=20
-    # ...: ): 
-    # ...:    print(x, instructions[np.where(x<angles)][0]) 
 
 
