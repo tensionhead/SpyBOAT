@@ -22,9 +22,9 @@ A snapshot of a typical output of the pipeline might look like this:
       
 From left to right: Intensity of the blurred and down-sampled input; Phases; Periods and Powers
 
+
 The results show the instantaneous spatial distributions of the key observables characterizing
 every oscillatory dynamics.
-This is the complete 3D-analogue to the results for univariate time-series provided by pyBOAT.
 
 ## General Usage Tips 
 
@@ -66,13 +66,20 @@ masking.
 
 ## Galaxy Web Tool
 
-SpyBOAT is ready for use on the [imaging.usegalaxy.eu](https://usegalaxy.eu/root?tool_id=/spyboat) platform, you don't even need a login to try it out. Just upload some data and start transforming/analyzing your movies! Galaxy offers a tour for new users to intruduce its web ui.
+SpyBOAT is ready for use on the [imaging.usegalaxy.eu](https://usegalaxy.eu/root?tool_id=/spyboat) platform, 
+you don't even need a login to try it out. Just upload some data and 
+start transforming/analyzing your movies! Galaxy offers a tour for new users 
+to intruduce its web ui.
 
 ### For Server Admins: Installing SpyBOAT as a Galaxy Tool
+
 
 SpyBOAT is available in the [toolshed](https://toolshed.g2.bx.psu.edu/view/iuc/spyboat/639d2031d998),
 so it can be easily installed on your Galaxy instance. You can also directly go to the ```/galaxy-tool``` folder. 
 There is a ```run_tests.sh``` which produces all SpyBOAT outputs in the cwd. 
+
+See the ```/galaxy``` folder. There is a ```run_tests.sh```
+which produces all the outputs in the cwd. 
 
 ## Python scripting interface
 
