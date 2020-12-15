@@ -11,127 +11,6 @@ from skimage.filters import gaussian, threshold_otsu
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- I/O ---
-
-def open_tif(fname):
-
-    '''
-    The stack to analyze with SpyBOAT 
-    must have (Frames,Y,X) ordering, this is what this function 
-    tries to ensure.
-
-    Note that multi-channel (Fiji Hyperstacks) are not directly
-    supported. Extract the channel of interest first!
-
-
-    Parameters
-    ----------
-
-    fname : string,
-            Path to the tif-stack to be opened
-
-    Returns
-    -------
-
-    movie : ndarray with ndim = 3, ordering is (Frames, Y, X)
-    '''
-
-    # 'dat' is for Galaxy..
-    if not ('tif' in fname) | ('dat' in fname):
-        raise ValueError(f'Input file ({fname}) not in tif/tiff format!')
-
-    logger.info(f'Opening {fname}')
-    
-    tif_stack = io.imread(fname, plugin = "tifffile")
-    
-    # 4D-Hyperstack
-    if len(tif_stack.shape) > 3:
-
-        logger.critical(f'Hyperstack detected with shape {tif_stack.shape}')
-        logger.critical(f'Hyperstacks are not supported, ndim of input stack must be 3!')
-
-        sys.exit(1)
-              
-        # with this you can handle the quirks of Fiji Hyperstacks
-        # try:
-        #     # if only two channels present,
-        #     # tifffile ordering sadly is F,C,X,Y
-        #     if tif_stack.shape[1] == 2:            
-        #         F,C,X,Y = tif_stack.shape # special ordering
-        #         movie = tif_stack[:,channel-1,:,:] # select a channel
-        #         print('Input shape:', (F,X,Y,C), '[Frames, Y, C, Channels]')                
-        #     # normal F,X,Y,C ordering
-        #     else:
-        #         movie = tif_stack[:,:,:,channel-1] # select a channel
-        #         print('Input shape:', tif_stack.shape, '[Frames, Y, Y, Channels]')
-                
-
-        #     return movie
-
-        # except IndexError:
-        #     print('Channel {} not found.. exiting!'.format(channel), file=sys.stderr)
-        #     print('Channel {} not found.. exiting!'.format(channel))
-
-        #     sys.exit(1)
-
-    # 3D-Stack
-    elif len(tif_stack.shape) == 3:
-        logger.info('Stack detected')
-        logger.info(f'Input shape: {tif_stack.shape}, interpreted as [Frames, Y, X]')
-
-        # return as is
-        return tif_stack
-
-    else:
-        logger.critical(f'Input shape: {tif_stack.shape} [?]')
-        logger.critical('Movie has wrong number of dimensions, is it a single slice stack?!')
-        sys.exit(1)
-
-# ---- Output -----------------------------------------------
-
-def save_to_tifs(results, input_name, directory):
-
-    '''
-    This is just a convenience function to save out
-    all transformation results at once with consistent names.
-
-    It will write four tifs to disc:
-
-    *directory*/phase_*input_name*.tif
-    *directory*/period_*input_name*.tif
-    *directory*/power_*input_name*.tif
-    *directory*/amplitude_*input_name*.tif
-
-    Parameters
-    ----------
-
-    results : dictionary, holds the four output movies 
-                     (phase, period, power and amplitude)
-
-    input_name : str, the common name (of the experiment/sample..)
-    directory : str, the target directory
-    '''
-    # save phase movie
-    out_path = path.join(directory, f'phase_{input_name}.tif')
-    io.imsave(out_path, results['phase'], plugin="tifffile")
-    logger.info(f'Written {out_path}')
-
-    # save period movie
-    out_path = path.join(directory, f'period_{input_name}.tif')
-    io.imsave(out_path, results['period'], plugin="tifffile")
-    logger.info(f'Written {out_path}')    
-    
-    # save power movie
-    out_path = path.join(directory, f'power_{input_name}.tif')
-    io.imsave(out_path, results['power'], plugin="tifffile")
-    logger.info(f'Written {out_path}')    
-
-    # save amplitude movie
-    out_path = path.join(directory, f'amplitude_{input_name}.tif')
-    io.imsave(out_path, results['amplitude'], plugin="tifffile")
-    logger.info(f'Written {out_path}')    
-    
-
 # --- pre-processing ---
 
 def down_sample(movie, scale_factor):
@@ -195,13 +74,14 @@ def gaussian_blur(movie, sigma):
 
     movie_gb = np.zeros( movie.shape )
     for frame in range(movie.shape[0]):
-        movie_gb[frame,...] = gaussian(movie[frame,...], sigma = sigma)
+        movie_gb[frame,...] = gaussian(movie[frame,...], sigma = sigma,
+                                       preserve_range=True)
 
     return movie_gb    
 
 # --- Masking ---
 
-def create_fixed_mask(movie, frame, threshold):
+def create_static_mask(movie, frame, threshold):
 
     '''
     This is a convenience function to create 
@@ -306,7 +186,7 @@ def apply_mask(movie, mask, fill_value = -1):
 
     movie : ndarray with ndim = 3, 1st axis is time
     mask : boolean array, holds True for masked pixels
-           can both be of ndim=2 for fixed, and ndim=3
+           can both be of ndim=2 for static, and ndim=3
            for dynamic masks
     fill_value : float, all masked pixels get set to this value
     
@@ -316,7 +196,7 @@ def apply_mask(movie, mask, fill_value = -1):
     # dynamic 3d mask, different for every frame
     if mask.shape == movie.shape:
         movie[mask] = fill_value
-    # fixed 2d mask
+    # static 2d mask
     elif mask.shape == movie.shape[1:]:
         movie[:,mask] = fill_value
     else:
