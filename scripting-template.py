@@ -63,7 +63,7 @@ spyplot.phase_snapshot(results['phase'][frame])
 
 # look at a period snapshot
 spyplot.period_snapshot(results['period'][frame],
-                        Wkwargs['Tmin'], Wkwargs['Tmax'],
+                        Wkwargs,
                         time_unit = 'h')
 
 # look at an amplitude snapshot
