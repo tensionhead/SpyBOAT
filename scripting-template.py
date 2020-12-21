@@ -80,7 +80,7 @@ spyplot.phase_coherence_dynamics(results['phase'], Wkwargs)
 base_name = 'SCN_Bmal1'
 
 # save out results to current working directory
-spyboat.save_results_to_tifs(results, base_name, directory = '.')
+spyboat.save_to_tifs(results, base_name, directory = '.')
 
 # save out the scaled and blurred input movie for
 # direct comparison to results and coordinate mapping etc.
