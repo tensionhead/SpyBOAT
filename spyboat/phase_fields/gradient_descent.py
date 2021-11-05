@@ -3,10 +3,6 @@ import matplotlib.pyplot as plt
 
 from skimage import io
 
-import grad_flux as gf
-import plotting as pl
-
-
 def next_step(vy, vx):
 
     ''' 
@@ -36,8 +32,7 @@ def next_step(vy, vx):
     )
 
     crawl_angle = np.arctan2(vy, vx) * 180 / np.pi
- 
-    box_index = np.where(crawl_angle < angle_boxes)[0][0]
+    box_index = np.where(crawl_angle <= angle_boxes)[0][0]
     dv = directions[box_index]
 
     return dv
@@ -54,8 +49,9 @@ def crawl_gradient(dY, dX, ini_point=(0, 0)):
     
     # gradient descent
     while True:
-        xys.append((x_old, y_old))
+        print(f'path is at ({x_old}, {y_old})')
 
+        xys.append((x_old, y_old))
         vy = dY[y_old, x_old]
         vx = dX[y_old, x_old]
 
@@ -69,40 +65,22 @@ def crawl_gradient(dY, dX, ini_point=(0, 0)):
             del xys[-1]
             break
 
+        # check for running into image border
+        if x_new < 0 or x_new >= dX.shape[1]:
+            break
+        if y_new < 0 or y_new >= dX.shape[0]:
+            break
+
+        # check for running into mask
+        if dY[y_new, x_new] == 0 and dX[y_new, x_new] == 0:
+            break
+        
         x_old = x_new
         y_old = y_new
 
+    print('\n')
     return np.array(xys)
 
-
-plt.ion()
-
-movie = io.imread("Quad-movie2-crop.tif")
-movie = io.imread('/home/whir/TheoBio/data/GoodPhaseMovies/GB10_phase_Max_L6.tif')
-frame = 84
-
-# get the gradient vectorfield
-dY, dX = gf.phase_gradient(movie[frame, ...])
-
-plt.contour(movie[frame], levels=15)
-#pl.show_vfield(dX, dY, skip=10)
-plt.imshow(movie[frame], interpolation="nearest", cmap="bwr")
-
-x_inis = np.arange(100, 400, 50)
-y_inis = np.arange(100, 400, 50)
-
-for xi in x_inis:
-    ini_point = (xi, 380)
-    cpath  = crawl_gradient(dY, dX, ini_point)
-    plt.plot(*ini_point, 'ro')
-    plt.plot(cpath[:,0], cpath[:,1], c="k", lw=2, marker=".")
-
-for yi in y_inis:
-    ini_point = (120, yi)
-    cpath  = crawl_gradient(dY, dX, ini_point)
-    plt.plot(*ini_point, 'ro')
-    plt.plot(cpath[:,0], cpath[:,1], c="k", lw=2, marker=".")
-    
 
 def old_instructions(y_o, x_o):
 
