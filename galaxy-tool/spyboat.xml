@@ -234,7 +234,7 @@
         The minimal period to scan for, this is the higher (in frequency) end of the spectrum. A warning will be given during processing if the chosen value deceeds the Nyquist limit (2 times the sampling interval).
 
     - Largest period:
-        The maximal period to scan for, this is the lower (in frequency) end of the spectrum. The inbuild Sinc filter will remove any periods larger than this form the data. Due to the 'roll off' of the filter, this value should be chosen generously. A warning will be given during processing if the chosen value exceeds the length of the time series.
+        The maximal period to scan for, this is the lower (in frequency) end of the spectrum. A warning will be given during processing if the chosen value exceeds the length of the time series.
 
     - Number of periods to scan for:
         This is the the number of convolutions computed per pixel.
