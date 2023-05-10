@@ -194,7 +194,7 @@
 
 -------------------
 
-    Wavelet transforms a 3d-image stack (time,Y,X) pixel by pixel along the time axis and extracts/evaluates the wavelet ridge. Removal of low-frequency trends is provided via sinc filtering. 
+    Wavelet transforms a 3d-image tiff-stack (time,Y,X) pixel by pixel along the time axis and extracts/evaluates the wavelet ridge. Removal of low-frequency trends is provided via windowed sinc high-pass filtering. 
     There are four output movies generated (phase, period, amplitude and power). They have exactly the same dimensions (time,Y,X) as the (rescaled) input.
 
     Pre-smoothing of the data with Gaussian kernels is supported and often recommendable.
@@ -204,7 +204,7 @@
 
     If multiple channels are present in your data, extract the channel of interest beforehand (e.g. with Fiji).
 
-    **Author**: Gregor Mönke (gregor.moenke@embl.de).
+    **Author**: Gregor Mönke (https://github.com/tensionhead).
 
     **Wrapper by**: Jelle Scholtalbers (jelle.scholtalbers@embl.de).
 
