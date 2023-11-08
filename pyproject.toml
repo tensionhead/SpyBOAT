@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [tool.flit.metadata]
 module="spyboat"
 author="Gregor Mönke"
-author-email="gregor.moenke@embl.de"
+author-email="tensionheadx@gmail.com"
 home-page="https://github.com/tensionhead/SpyBOAT"
 requires=[
     "numpy >=1.18",
@@ -21,6 +21,6 @@ requires-python=">=3.6"
 description-file="doc/description.md"
 
 # no direct commandline interface
-#[tool.flit.scripts]
-#pyboat="pyboat:main"
+# [tool.flit.scripts]
+# pyboat="pyboat:main"
 
